@@ -3,7 +3,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 public class SenderViewModelUdp {
-    private static final int PORT = 1995;
+    private static final int PORT = 1996;
     private static final int PACKET_SIZE = 1024; // UDP 패킷 크기 (1KB)
 
     public void startClient(String serverIP) {

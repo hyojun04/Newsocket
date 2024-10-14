@@ -7,7 +7,7 @@ import javax.swing.JTextArea;
 
 public class ReceiverViewModelUdp {
 
-    private static final int PORT = 1995;
+    private static final int PORT = 1996;
     private static final int BUFFER_SIZE = 1024;
     private JTextArea receivedMessagesArea;  // GUIÀÇ receive message Ã¢
     private static int receive_massage_num = 0;

@@ -14,7 +14,7 @@ public class NewSocket extends JFrame {
     private JButton connection_Button_TCP;
     private JButton sendButton_UDP;
     private JButton sendStopButton_UDP;
-    private JButton receiveButton_TCP;
+    private JButton accept_Button_TCP;
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
     private JButton clearSendButton;
@@ -89,7 +89,7 @@ public class NewSocket extends JFrame {
         // 버튼 생성
         connection_Button_TCP = new JButton("Connection TCP Socket");
         sendButton_UDP = new JButton("Send UDP Message");
-        receiveButton_TCP = new JButton("Wait for TCP");
+        accept_Button_TCP = new JButton("Wait for TCP");
         receiveButton_UDP = new JButton("Wait for UDP");
         sendStopButton_UDP = new JButton("Stop UDP Msg");
         // IP 입력 필드
@@ -102,7 +102,7 @@ public class NewSocket extends JFrame {
         buttonPanel.add(new JLabel("Broad IP:"));
         buttonPanel.add(inputIp_udpBroad);
         buttonPanel.add(connection_Button_TCP);
-        buttonPanel.add(receiveButton_TCP);
+        buttonPanel.add(accept_Button_TCP);
         buttonPanel.add(sendButton_UDP);
         buttonPanel.add(receiveButton_UDP);
         buttonPanel.add(sendStopButton_UDP);
@@ -144,12 +144,13 @@ public class NewSocket extends JFrame {
         });
         //해당 버튼을 눌러야 연결버튼을 통한 소켓연결이 가능함 
      // TCP 수신 버튼 이벤트 처리
-        receiveButton_TCP.addActionListener(new ActionListener() {
+        accept_Button_TCP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                receiver_tcp = new ReceiverViewModel();
-                new Thread(() -> receiver_tcp.startServer()).start();
-                receivedMessagesArea.append("TCP 수신 대기 중...\n");
+                receiver_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
+                TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter();
+                tcp_accepter.startServer();
+                consoleArea.append("TCP 소켓 연결 대기 중...\n");
                 System.out.println("Waiting for TCP");
             }
         });

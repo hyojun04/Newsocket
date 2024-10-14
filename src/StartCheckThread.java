@@ -27,9 +27,9 @@ public class StartCheckThread implements Runnable {
             else if(receiver_tcp.hasNewEchoMessage()) { //에코메시지를 검사 
             	
             	System.out.println("TCP Echo message is got");
-            	NewSocket.clients_tcp.set(receiver_tcp.perminent_id,true);
-            	if(NewSocket.clients_tcp.get(receiver_tcp.perminent_id) == true)
-                	System.out.println("Client Num: "+receiver_tcp.perminent_id+" Changed index value TRUE");
+            	NewSocket.clients_tcp.set(tcpConnection.permanent_id,true);
+            	if(NewSocket.clients_tcp.get(tcpConnection.permanent_id) == true)
+                	System.out.println("Client Num: "+tcpConnection.permanent_id+" Changed index value TRUE");
             	receiver_tcp.resetNewEchoMessageFlag();
             }
             	
