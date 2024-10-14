@@ -33,7 +33,7 @@ public class ReceiverViewModelUdp {
         DatagramSocket socket = null;
         try {
             socket = new DatagramSocket(PORT);
-            System.out.println("UDP 서버가 " + PORT + " 포트에서 시작되었습니다. 메시지 대기 중...");
+            System.out.println("UDP Server " + " get started in Port."+PORT +" Waiting for Messages...");
 
             // 무한 루프로 메시지 계속 수신
             while (true) {
@@ -65,7 +65,7 @@ public class ReceiverViewModelUdp {
                     // 수신 메시지 GUI에 표시
                     receive_massage_num ++;
                     receivedMessagesArea.append("["+receive_massage_num+"]수신된 메시지 from " + clientIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");                    
-                    System.out.println("수신 확인 메시지를 송신했습니다: ");
+                    System.out.println("I got Message : " + truncatedMessage );
                     
                     if(receivePacket != null) newMessageReceived = true; //메시지 수 받았을 경우
                     

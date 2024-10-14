@@ -91,10 +91,10 @@ public class NewSocket extends JFrame {
         sendButton_UDP = new JButton("Send UDP Message");
         receiveButton_TCP = new JButton("Wait for TCP");
         receiveButton_UDP = new JButton("Wait for UDP");
-
+        sendStopButton_UDP = new JButton("Stop UDP Msg");
         // IP 입력 필드
-        inputIp = new JTextField("192.168.49.255", 15);
-        inputIp_udpBroad = new JTextField("192.",15);
+        inputIp = new JTextField("192.167.11.36", 15);
+        inputIp_udpBroad = new JTextField("192.167.11.255",15);
         // 버튼과 텍스트 필드를 담을 패널
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(new JLabel("Client IP:"));
@@ -178,7 +178,7 @@ public class NewSocket extends JFrame {
                         
                         consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
                     }
-                }, 0, 50); // 50ms 간격으로 실행
+                }, 0, 2000); // 2s 간격으로 실행
             }
         });
         // UDP 전송 중지 버튼
