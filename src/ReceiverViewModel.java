@@ -7,6 +7,7 @@ public class ReceiverViewModel {
     private Socket socket = null;
     private ServerSocket serverSocket = null;
     private static final int PORT = 1995;
+	public int perminent_id; //에코메시지 배열 인덱스와 연결하기 위한 고유 번호 
     private volatile boolean newEchoReceived_tcp = false; // 에코 메시지 수신 여부
 
     public boolean hasNewEchoMessage() {
@@ -17,23 +18,41 @@ public class ReceiverViewModel {
         newEchoReceived_tcp = false;
     }
 
-    public void startServer() {
+    public void startServer(Socket clientSocket) {
         ObjectInputStream in = null;
         ObjectOutputStream out = null;
 
         try {
+        	this.socket = clientSocket;
             serverSocket = new ServerSocket(PORT);
             System.out.println("Waiting for connection...");
             socket = serverSocket.accept();
             System.out.println("Connected completely.");
-
+            
+            if(NewSocket.clients_tcp_index == 0)
+			{	
+				NewSocket.clients_tcp.set(NewSocket.clients_tcp_index, false);  // 초기 인덱스는 false로 초기
+				perminent_id = NewSocket.clients_tcp_index;
+				System.out.println("connected by TCP"+ " & index: " + NewSocket.clients_tcp_index);
+				NewSocket.clients_tcp_index++;
+			}
+			else { //index가 0이 아니면 배열을 늘림 
+				NewSocket.clients_tcp.add(NewSocket.clients_tcp_index, false);  // 다음 인덱스는 false로 초기
+				perminent_id = NewSocket.clients_tcp_index;
+				System.out.println("connected by TCP"+ " & index: " + NewSocket.clients_tcp_index);
+				NewSocket.clients_tcp_index++; // index값 = client수 + 1 
+				
+				
+			}
             out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
             in = new ObjectInputStream(socket.getInputStream());
 
             String clientIP = socket.getInetAddress().getHostAddress();
             String hostIP = InetAddress.getLocalHost().getHostAddress();
-
+            
+            
+            
             // 클라이언트와의 연결을 유지하면서 메시지를 지속적으로 수신
             while (!socket.isClosed()) {
                 try {
@@ -62,6 +81,10 @@ public class ReceiverViewModel {
                     break; // 기타 오류가 발생했을 때 while 루프를 탈출
                 }
             }
+            
+            
+            
+            
         } catch (BindException e) {
             System.out.println("The port is already used: " + e.getMessage());
             try {

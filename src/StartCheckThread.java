@@ -27,16 +27,16 @@ public class StartCheckThread implements Runnable {
             else if(receiver_tcp.hasNewEchoMessage()) { //에코메시지를 검사 
             	
             	System.out.println("TCP Echo message is got");
-            	NewSocket.clients_tcp.set(tcpConnection.perminent_id,true);
-            	if(NewSocket.clients_tcp.get(tcpConnection.perminent_id) == true)
-                	System.out.println("Client Num: "+tcpConnection.perminent_id+" Changed index value TRUE");
+            	NewSocket.clients_tcp.set(receiver_tcp.perminent_id,true);
+            	if(NewSocket.clients_tcp.get(receiver_tcp.perminent_id) == true)
+                	System.out.println("Client Num: "+receiver_tcp.perminent_id+" Changed index value TRUE");
             	receiver_tcp.resetNewEchoMessageFlag();
             }
             	
             	
             
             try {
-                Thread.sleep(10); // 10ms마다 수신 여부를 확인
+                Thread.sleep(50); // 50ms마다 수신 여부를 확인 
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

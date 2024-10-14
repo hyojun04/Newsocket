@@ -33,11 +33,11 @@ public class NewSocket extends JFrame {
     public NewSocket() {
     	//에코메시지 배열 초기화
     	clients_tcp = new ArrayList<>();
-    	clients_tcp.add(true);
+    	clients_tcp.add(false);
     	
         // GUI 기본 설정
         setTitle("P2P UCP Broadcast");
-        setSize(1200, 600); // 크기를 조금 더 늘려줌
+        setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -143,12 +143,18 @@ public class NewSocket extends JFrame {
             }
         });
         //해당 버튼을 눌러야 연결버튼을 통한 소켓연결이 가능함 
+     // TCP 수신 버튼 이벤트 처리
         receiveButton_TCP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                receiver_tcp = new ReceiverViewModel();
-                new Thread(() -> receiver_tcp.startServer()).start();
-                consoleArea.append("TCP 수신 대기 중...\n");
+                // TCP 연결이 성공적으로 이루어진 경우에만 수신을 시작
+                if (tcp_connection != null && tcp_connection.getSocket() != null && !tcp_connection.getSocket().isClosed()) {
+                    receiver_tcp = new ReceiverViewModel(); // tcp_connection에서 소켓을 가져와 전달
+                    new Thread(() -> receiver_tcp.startServer(tcp_connection.getSocket())).start();
+                    consoleArea.append("TCP 수신 대기 중...\n");
+                } else {
+                    consoleArea.append("TCP 소켓이 연결되지 않았습니다. 연결을 먼저 확인하세요.\n");
+                }
             }
         });
 
@@ -172,6 +178,7 @@ public class NewSocket extends JFrame {
                             consoleArea.append("모든 클라이언트로부터 에코 메시지를 받았으므로 브로드캐스트 중지\n");
                             // 수신 상태 플래그 초기화
                             receiver_udp.resetNewMessageFlag();
+                            receiver_tcp.resetNewEchoMessageFlag();
                             return; // 전송 중지 후 종료
                         }
                         sender_udp.startClient(serverIP);  // 50ms마다 UDP 메시지 전송
