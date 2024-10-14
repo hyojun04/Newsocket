@@ -147,14 +147,10 @@ public class NewSocket extends JFrame {
         receiveButton_TCP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TCP 연결이 성공적으로 이루어진 경우에만 수신을 시작
-                if (tcp_connection != null && tcp_connection.getSocket() != null && !tcp_connection.getSocket().isClosed()) {
-                    receiver_tcp = new ReceiverViewModel(); // tcp_connection에서 소켓을 가져와 전달
-                    new Thread(() -> receiver_tcp.startServer(tcp_connection.getSocket())).start();
-                    consoleArea.append("TCP 수신 대기 중...\n");
-                } else {
-                    consoleArea.append("TCP 소켓이 연결되지 않았습니다. 연결을 먼저 확인하세요.\n");
-                }
+                receiver_tcp = new ReceiverViewModel();
+                new Thread(() -> receiver_tcp.startServer()).start();
+                receivedMessagesArea.append("TCP 수신 대기 중...\n");
+                System.out.println("Waiting for TCP");
             }
         });
 

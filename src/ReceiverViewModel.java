@@ -18,12 +18,12 @@ public class ReceiverViewModel {
         newEchoReceived_tcp = false;
     }
 
-    public void startServer(Socket clientSocket) {
+    public void startServer() {
         ObjectInputStream in = null;
         ObjectOutputStream out = null;
 
         try {
-        	this.socket = clientSocket;
+        	
             serverSocket = new ServerSocket(PORT);
             System.out.println("Waiting for connection...");
             socket = serverSocket.accept();

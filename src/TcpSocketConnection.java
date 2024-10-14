@@ -9,8 +9,7 @@ public class TcpSocketConnection {
     public void startClient(String serverIP) {
         try {
             socket = new Socket(serverIP, PORT);
-            // SenderViewModel 인스턴스 생성
-            sender = new SenderViewModel(socket);
+            
             System.out.println("Client: " + serverIP + " is connected by TCP" + " & index: " + NewSocket.clients_tcp_index);
 
         } catch (IOException e) {
@@ -27,10 +26,7 @@ public class TcpSocketConnection {
         }
     }
 
-    // 소켓을 외부에서 접근할 수 있도록 getter 추가
-    public Socket getSocket() {
-        return socket;
-    }
+    
 
     // 소켓 종료 메서드 추가
     public void closeSocket() {
