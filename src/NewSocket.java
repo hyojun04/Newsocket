@@ -158,10 +158,7 @@ public class NewSocket extends JFrame {
                 if (udpTimer != null) {
                     udpTimer.cancel();  // 타이머 중지 (이전에 동작 중이었다면)
                 }
-                if(checkAllClientsTrue(clients_tcp)) {
-                	udpTimer.cancel();
-                	consoleArea.append("모든 클라이언트로부터 에코 메시지를 받았으므로 브로드캐스트 중지");
-                }
+                
                 sender_udp = new SenderViewModelUdp();
                 String serverIP = inputIp_udpBroad.getText();
 
@@ -169,7 +166,14 @@ public class NewSocket extends JFrame {
                 udpTimer.scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
-                    	checkAllClientsTrue(clients_tcp);
+                    	// 주기적으로 클라이언트 응답 체크
+                        if (checkAllClientsTrue(clients_tcp)) {
+                            udpTimer.cancel();  // 모든 클라이언트가 응답했으므로 타이머 중지
+                            consoleArea.append("모든 클라이언트로부터 에코 메시지를 받았으므로 브로드캐스트 중지\n");
+                            // 수신 상태 플래그 초기화
+                            receiver_udp.resetNewMessageFlag();
+                            return; // 전송 중지 후 종료
+                        }
                         sender_udp.startClient(serverIP);  // 50ms마다 UDP 메시지 전송
                         
                         // sendMessageArea에 보내는 메시지 추가
@@ -199,7 +203,7 @@ public class NewSocket extends JFrame {
                 new Thread(() -> receiver_udp.startServer()).start();
                 consoleArea.append("UDP 수신 대기 중...\n");
                 //UDP Broad메시지를 수신하였지 체크하는 스레드 생성 
-                StartUdpCheckThread udpCheckThread = new StartUdpCheckThread(receiver_udp, tcp_connection);
+                StartCheckThread udpCheckThread = new StartCheckThread(receiver_udp,receiver_tcp ,tcp_connection);
                 Thread udpCheck = new Thread(udpCheckThread);
                 udpCheck.start();
             }
