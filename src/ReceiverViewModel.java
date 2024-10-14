@@ -14,9 +14,9 @@ public class ReceiverViewModel {
 
         try {
             serverSocket = new ServerSocket(PORT);
-            System.out.println("연결 대기 중...");
+            System.out.println("Waiting for connection...");
             socket = serverSocket.accept();
-            System.out.println("기기와 연결되었습니다.");
+            System.out.println("Connected completely.");
 
             out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
@@ -42,10 +42,10 @@ public class ReceiverViewModel {
                         
                     }
                 } catch (EOFException e) {
-                    System.out.println("클라이언트 연결이 종료되었습니다.");
+                    System.out.println("Client Connection is disconnected.");
                    
                 } catch (SocketException e) {
-                    System.out.println("연결이 리셋되었습니다: " + e.getMessage());
+                    System.out.println("Connection gets reset: " + e.getMessage());
                    
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
@@ -54,7 +54,7 @@ public class ReceiverViewModel {
             
 
         } catch (BindException e) {
-            System.out.println("포트가 이미 사용 중입니다: " + e.getMessage());
+            System.out.println("The port is already used: " + e.getMessage());
             try {
                 Thread.sleep(1000); // 1초 대기
                 serverSocket = new ServerSocket(PORT); // 다시 시도

@@ -13,6 +13,7 @@ public class NewSocket extends JFrame {
     private JTextArea consoleArea;
     private JButton connection_Button_TCP;
     private JButton sendButton_UDP;
+    private JButton sendStopButton_UDP;
     private JButton receiveButton_TCP;
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
@@ -36,7 +37,7 @@ public class NewSocket extends JFrame {
     	
         // GUI 기본 설정
         setTitle("P2P UCP Broadcast");
-        setSize(900, 600); // 크기를 조금 더 늘려줌
+        setSize(1200, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -104,6 +105,7 @@ public class NewSocket extends JFrame {
         buttonPanel.add(receiveButton_TCP);
         buttonPanel.add(sendButton_UDP);
         buttonPanel.add(receiveButton_UDP);
+        buttonPanel.add(sendStopButton_UDP);
 
         // 메인 레이아웃 설정
         setLayout(new BorderLayout());
@@ -129,7 +131,7 @@ public class NewSocket extends JFrame {
         
         
         
-        // 버튼 이벤트 처리
+        // 연결 버튼 이벤트 처리
         connection_Button_TCP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -140,7 +142,7 @@ public class NewSocket extends JFrame {
                 
             }
         });
-
+        //해당 버튼을 눌러야 연결버튼을 통한 소켓연결이 가능함 
         receiveButton_TCP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -179,14 +181,24 @@ public class NewSocket extends JFrame {
                 }, 0, 50); // 50ms 간격으로 실행
             }
         });
-
+        // UDP 전송 중지 버튼
+        sendStopButton_UDP.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (udpTimer != null) {
+                    udpTimer.cancel();  // 타이머 중지
+                    udpTimer = null;    // 타이머 객체를 null로 설정하여 상태 초기화
+                    consoleArea.append("UDP 메시지 전송이 중지되었습니다.\n");
+                }
+            }
+        });
         receiveButton_UDP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 receiver_udp = new ReceiverViewModelUdp(receivedMessagesArea);  // receivedMessagesArea 전달
                 new Thread(() -> receiver_udp.startServer()).start();
                 consoleArea.append("UDP 수신 대기 중...\n");
-                //UDP Broad메시지를 수신하였지 체크하는 스레드 생
+                //UDP Broad메시지를 수신하였지 체크하는 스레드 생성 
                 StartUdpCheckThread udpCheckThread = new StartUdpCheckThread(receiver_udp, tcp_connection);
                 Thread udpCheck = new Thread(udpCheckThread);
                 udpCheck.start();

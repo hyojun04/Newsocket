@@ -35,7 +35,8 @@ public class SenderViewModel {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
+		} 
+		finally {
 			try {
 				if (out != null) {
 					out.close();
