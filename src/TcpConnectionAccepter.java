@@ -37,7 +37,7 @@ public class TcpConnectionAccepter {
             break;
         } 
         catch(BindException e) {
-    		System.err.println("Port: "+PORT +"is already used");
+    		System.out.println("Port: "+PORT +"is already used");
     		PORT++;
     	}
     	catch(IOException e) {

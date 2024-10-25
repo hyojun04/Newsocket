@@ -26,7 +26,7 @@ public class TcpSocketConnection {
     
 
     // TCP 에코 메시지를 전송하는 메서드
-    public void sendEchoMessage(String message) {
+    public void sendAckMessage(String message) {
         if (client != null) {
             client.sendMessage_tcp(message); // Client_Tcp을 사용하여 메시지 전송
         } else {
