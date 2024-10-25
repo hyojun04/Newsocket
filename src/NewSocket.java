@@ -42,7 +42,7 @@ public class NewSocket extends JFrame {
     	clients_tcp.add(false);
     	
         // GUI 기본 설정
-        setTitle("P2P UCP Broadcast");
+        setTitle("P2P UCP BroadcastFinal");
         setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -80,7 +80,8 @@ public class NewSocket extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 sendMessageArea.setText(""); // 전송 메시지 창의 텍스트 초기화
-                sentMessageCount = 0;        // 전송 메시지 카운터 초기화
+                sentMessageCount = 0;        // 전송 메시지 카운트 초기화
+                sentMessageCount_actual = 0; // 실제 전송된 메시지 카운트 초기화
             }
         });
 
@@ -102,7 +103,7 @@ public class NewSocket extends JFrame {
         
         //첫번째 TCP 소켓의 IP 입력 필드
         inputIp_1 = new JTextField("192.167.11.36", 15);
-        inputIp_udpBroad = new JTextField("192.168.223.255",15);//192.168.223.255, 192.168.0.255
+        inputIp_udpBroad = new JTextField("192.167.11.255",15);//192.168.223.255, 192.168.0.255
         //두번째 TCP 소켓의 IP 입력 필드
         inputIp_2 = new JTextField("192.167.11.22", 15);
         
@@ -174,8 +175,12 @@ public class NewSocket extends JFrame {
                 tcp_connection = new TcpSocketConnection();
                 String serverIP = inputIp_1.getText();
                 tcp_connection.startClient(serverIP);
-                if(tcpSocketNum != 0 ) consoleArea.append("["+tcpSocketNum+"]Client: "+serverIP+"가 TCP 소켓과 연결되었습니다. \n");
+                if(tcpSocketNum != 0 ) {
+                	consoleArea.append("Connection버튼 \n");
+                	consoleArea.append("["+tcpSocketNum+"]Client: "+serverIP+"가 TCP 소켓과 연결되었습니다. \n");
+                	}
                 else if(tcpSocketNum == 0 ) {
+                	consoleArea.append("Connection버튼 \n");
                 	consoleArea.append("["+tcpSocketNum+"]Client: "+serverIP+"가 TCP 소켓과 연결되었습니다. \n");
                 	tcpSocketNum++;
                 	}
@@ -192,8 +197,12 @@ public class NewSocket extends JFrame {
                 
                 TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter();
                 tcp_accepter.startServer(receivedMessagesArea,consoleArea);
-                if(tcpSocketNum != 0 ) consoleArea.append("["+tcpSocketNum+"] TCP 소켓과 연결되었습니다. \n");
+                if(tcpSocketNum != 0 ) {
+                	consoleArea.append("Wait for TCP버튼 \n");
+                	consoleArea.append("["+tcpSocketNum+"] TCP 소켓과 연결되었습니다. \n");
+                	}
                 else if(tcpSocketNum == 0 ) {
+                	consoleArea.append("Wait for TCP버튼 \n");
                 	consoleArea.append("["+tcpSocketNum+"] TCP 소켓과 연결되었습니다. \n");
                 	tcpSocketNum++;
                 	}
