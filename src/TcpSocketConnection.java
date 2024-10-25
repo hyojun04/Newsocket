@@ -11,11 +11,11 @@ public class TcpSocketConnection {
     public void startClient(String serverIP) {
         try {
             socket = new Socket(serverIP, PORT);
-            PORT++; //소켓을 2개 동시에 연결하기 위해서 다음 포트번호를 할당 
+            
             client = new Client_Tcp(socket);
             
             
-            System.out.println("Client: " + serverIP + " is connected by TCP" + " & index: " + NewSocket.clients_tcp_index);
+            System.out.println("Connected by TCP to " + serverIP  + " & index: " + NewSocket.clients_tcp_index);
             
             
             

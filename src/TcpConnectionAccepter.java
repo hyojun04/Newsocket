@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import javax.swing.JTextArea;
@@ -10,7 +11,7 @@ public class TcpConnectionAccepter {
     
 
     public void startServer(JTextArea receivedMessagesArea,JTextArea consoleArea) {
-        
+        while(true) {
         try {
             serverSocket = new ServerSocket(PORT);
             System.out.println("Waiting for connection...");
@@ -19,31 +20,43 @@ public class TcpConnectionAccepter {
             // 클라이언트 최대 개수 설정
             
             while (NewSocket.clients_tcp_index < 1) {
-                Socket clientSocket = serverSocket.accept(); // 클라이언트 연결 수락
-                System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
+            	
+            		Socket clientSocket = serverSocket.accept(); // 클라이언트 연결 수락
+                    System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
 
-                // 각 클라이언트에 대해 새로운 핸들러 스레드를 생성
-                ClientHandler clientHandler = new ClientHandler(clientSocket, this, receivedMessagesArea);
-                new Thread(clientHandler).start();
+                    // 각 클라이언트에 대해 새로운 핸들러 스레드를 생성
+                    ClientHandler clientHandler = new ClientHandler(clientSocket, this, receivedMessagesArea);
+                    new Thread(clientHandler).start();
+            	
+            	
+                
+                
             }
             consoleArea.append("TCP 소켓 연결완료 \n");
             System.out.println("All TCP Sockets are connnected");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            break;
+        } 
+        catch(BindException e) {
+    		System.err.println("Port: "+PORT +"is already used");
+    		PORT++;
+    	}
+    	catch(IOException e) {
+    		e.printStackTrace();
+    		break;
+    	}
     }
+}
 
     // 각 클라이언트와의 통신을 처리하는 클래스
     public class ClientHandler implements Runnable {
         
         private final Server_Tcp receiverTcp;
         public int permanent_id;
-        private final TcpConnectionAccepter tcpAccepter; // TcpConnectionAccepter 참조
+        
 
         public ClientHandler(Socket clientSocket, TcpConnectionAccepter tcpAccepter, JTextArea receivedMessagesArea) {
             
-            this.tcpAccepter = tcpAccepter; // TcpConnectionAccepter 인스턴스 저장
+            
             
 
             // 인덱스를 설정하고, 연결된 클라이언트를 처리할 수 있도록 설정

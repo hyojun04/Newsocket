@@ -101,10 +101,10 @@ public class NewSocket extends JFrame {
         
         
         //첫번째 TCP 소켓의 IP 입력 필드
-        inputIp_1 = new JTextField("172.30.1.76", 15);
+        inputIp_1 = new JTextField("192.167.11.36", 15);
         inputIp_udpBroad = new JTextField("192.168.223.255",15);//192.168.223.255, 192.168.0.255
         //두번째 TCP 소켓의 IP 입력 필드
-        inputIp_2 = new JTextField("172.30.1.75", 15);
+        inputIp_2 = new JTextField("192.167.11.22", 15);
         
         
         // 버튼과 텍스트 필드를 담을 패널

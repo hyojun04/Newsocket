@@ -6,7 +6,7 @@ import javax.swing.JTextArea;
 public class Server_Tcp {
 	/*메시지를 받기만 하는 기능 구현*/
     private Socket socket;
-    private static final int PORT = 8189;
+    
     private JTextArea receivedMessagesArea;  // GUI의 receive message 창
     private volatile boolean newEchoReceived_tcp = false; // 에코 메시지 수신 여부
     private int receive_message_num = 0;
