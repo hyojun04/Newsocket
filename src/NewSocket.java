@@ -36,7 +36,7 @@ public class NewSocket extends JFrame {
     	clients_tcp.add(false);
     	
         // GUI 기본 설정
-        setTitle("P2P UCP Broadcast");
+        setTitle("P2P UCP Broadcast - Client");
         setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -87,9 +87,9 @@ public class NewSocket extends JFrame {
         consoleScrollPane.setBorder(BorderFactory.createTitledBorder("Console"));
 
         // 버튼 생성
-        connection_Button = new JButton("Connection TCP Socket");
+        connection_Button = new JButton("Connection");
         sendButton_UDP = new JButton("Send UDP Message");
-        connectionSetup_Button = new JButton("Wait for TCP");
+        connectionSetup_Button = new JButton("Connection Setup");
         receiveButton_UDP = new JButton("Wait for UDP");
         sendStopButton_UDP = new JButton("Stop UDP Msg");
         // IP 입력 필드
