@@ -54,7 +54,7 @@ public class SenderViewModelUdp {
             byte[] messageBytes = message.getBytes();
             DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length, serverAddress, PORT);
             socket.send(packet);
-            System.out.println("UDP is connected.");
+            System.out.println("UDP serverIp is sending");
     	}
     	catch (Exception e) {
     		e.printStackTrace();

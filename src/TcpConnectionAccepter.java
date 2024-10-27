@@ -30,7 +30,7 @@ public class TcpConnectionAccepter implements Runnable {
                 
                 /*UDP broad로 Server쪽 IP 전송하는 매커니즘 추가*/
                 System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
-
+                consoleArea.append("Client connected: " + clientSocket.getInetAddress().getHostAddress()+"\n");
                 // 각 클라이언트에 대해 새로운 핸들러 스레드를 생성
                 ClientHandler clientHandler = new ClientHandler(clientSocket, this, receivedMessagesArea);
                 new Thread(clientHandler).start();

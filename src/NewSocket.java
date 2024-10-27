@@ -37,7 +37,7 @@ public class NewSocket extends JFrame {
     	clients_tcp.add(false);
     	
         // GUI 기본 설정
-        setTitle("P2P UCP Broadcast");
+        setTitle("P2P UCP Broadcast - Server");
         setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -95,7 +95,7 @@ public class NewSocket extends JFrame {
         sendStopButton_UDP = new JButton("Stop UDP Msg");
         // IP 입력 필드
         inputIp = new JTextField("172.30.1.76", 15);
-        inputIp_udpBroad = new JTextField("192.168.223.255",15);//192.168.223.255, 192.168.0.255
+        inputIp_udpBroad = new JTextField("172.30.1.255",15);//192.168.223.255, 192.168.0.255
         // 버튼과 텍스트 필드를 담을 패널
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(new JLabel("Client IP:"));
@@ -153,9 +153,19 @@ public class NewSocket extends JFrame {
                 TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter(receivedMessagesArea,consoleArea);
                 new Thread(tcp_accepter).start();
                 String broadIP = inputIp_udpBroad.getText();
-                //TCP 소켓을 열고, UDP Broad 전송
-                sender_udp.startSend(broadIP);
-                consoleArea.append("Connection Setup Ready");
+                
+                //TCP 소켓을 열고, UDP Broad 전송, stopUDPsend 버튼 누르면 송신 중지 -> 추후 연결되면 멈추도록하는 매커니즘으로 변경
+                sender_udp = new SenderViewModelUdp();
+                udpTimer = new Timer();
+                udpTimer.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                    	sender_udp.startSend(broadIP);
+                    }
+                }, 0, 500); // 500ms 간격으로 실행
+
+                
+                consoleArea.append("Connection Setup Ready \n");
                 
                 
             }
