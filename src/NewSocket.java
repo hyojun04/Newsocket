@@ -136,6 +136,7 @@ public class NewSocket extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 tcp_connection = new TcpSocketConnection();
+                receiver_udp = new ReceiverViewModelUdp(receivedMessagesArea);
                 String serverIP = receiver_udp.startConnect_to_tcp();
                 tcp_connection.startClient(serverIP);
                 consoleArea.append("Client: "+serverIP+"가 TCP 소켓과 연결되었습니다. \n");
