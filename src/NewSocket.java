@@ -11,29 +11,23 @@ public class NewSocket extends JFrame {
     private JTextArea receivedMessagesArea;
     private JTextArea sendMessageArea;
     private JTextArea consoleArea;
-    private JButton connection_Button_TCP;
-    
+    private JButton connection_Button;
     private JButton sendButton_UDP;
     private JButton sendStopButton_UDP;
-    private JButton accept_Button_TCP;
-    
+    private JButton connectionSetup_Button;
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
     private JButton clearSendButton;
-    
+    private Server_Tcp server_tcp;
     private ReceiverViewModelUdp receiver_udp;
     private TcpSocketConnection tcp_connection;
     private SenderViewModelUdp sender_udp;
-    private JTextField inputIp_1;
-    private JTextField inputIp_2;
+    private JTextField inputIp;
     private JTextField inputIp_udpBroad;
-    private int sentMessageCount = 0;       // 메시지의 번호 
-    private int sentMessageCount_actual = 0; //실제 전송 메시지 카운
-    private int tcpSocketNum =0; //TCP Socket의 번호
+    private int sentMessageCount = 0;       // 전송 메시지 카운터
     private Timer udpTimer;                 // UDP 전송을 위한 타이머
     public static ArrayList<Boolean> clients_tcp;   //에코메시지를 받았는 지 확인하는 이진수배열 
     public static int clients_tcp_index = 0; // 에코메시지의 배열의 인덱스
-    
     
     
     public NewSocket() {
@@ -42,7 +36,7 @@ public class NewSocket extends JFrame {
     	clients_tcp.add(false);
     	
         // GUI 기본 설정
-        setTitle("P2P UCP BroadcastFinal");
+        setTitle("P2P UCP Broadcast");
         setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -80,8 +74,7 @@ public class NewSocket extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 sendMessageArea.setText(""); // 전송 메시지 창의 텍스트 초기화
-                sentMessageCount = 0;        // 전송 메시지 카운트 초기화
-                sentMessageCount_actual = 0; // 실제 전송된 메시지 카운트 초기화
+                sentMessageCount = 0;        // 전송 메시지 카운터 초기화
             }
         });
 
@@ -94,55 +87,25 @@ public class NewSocket extends JFrame {
         consoleScrollPane.setBorder(BorderFactory.createTitledBorder("Console"));
 
         // 버튼 생성
-        connection_Button_TCP = new JButton("Connection TCP Socket");
+        connection_Button = new JButton("Connection TCP Socket");
         sendButton_UDP = new JButton("Send UDP Message");
-        accept_Button_TCP = new JButton("Wait for TCP");
+        connectionSetup_Button = new JButton("Wait for TCP");
         receiveButton_UDP = new JButton("Wait for UDP");
         sendStopButton_UDP = new JButton("Stop UDP Msg");
-        
-        
-        //첫번째 TCP 소켓의 IP 입력 필드
-        inputIp_1 = new JTextField("192.167.11.36", 15);
-        inputIp_udpBroad = new JTextField("192.167.11.255",15);//192.168.223.255, 192.168.0.255
-        //두번째 TCP 소켓의 IP 입력 필드
-        inputIp_2 = new JTextField("192.167.11.22", 15);
-        
-        
+        // IP 입력 필드
+        inputIp = new JTextField("192.167.11.36", 15); //192.168.0.228
+        inputIp_udpBroad = new JTextField("192.168.0.255",15);
         // 버튼과 텍스트 필드를 담을 패널
-        JPanel buttonPanel_main = new JPanel(new FlowLayout());
-        JPanel buttonPanel_1 = new JPanel(new FlowLayout());
-        JPanel buttonPanel_2 = new JPanel(new FlowLayout());
-        JPanel buttonPanel_3 = new JPanel(new FlowLayout());
-        JPanel buttonPanel_4 = new JPanel(new FlowLayout());
-        JPanel buttonPanel_5 = new JPanel(new FlowLayout());
-        
-        //새로운 버튼을 위한 패널 설정
-        JPanel buttonSmallPanel = new JPanel(new BorderLayout());
-        
-        buttonPanel_1.add(new JLabel("Client1 IP:"));
-        buttonPanel_1.add(inputIp_1);
-        buttonSmallPanel.add(buttonPanel_1,BorderLayout.NORTH);
-        
-        buttonPanel_2.add(new JLabel("Client2 IP:"));
-        buttonPanel_2.add(inputIp_2);
-        buttonSmallPanel.add(buttonPanel_2,BorderLayout.SOUTH);
-        buttonPanel_main.add(buttonSmallPanel);
-        
-        buttonPanel_3.add(new JLabel("Broad IP:"));
-        buttonPanel_3.add(inputIp_udpBroad);
-        buttonPanel_main.add(buttonPanel_3);
-        
-        
-        
-        buttonPanel_4.add(connection_Button_TCP);
-        buttonPanel_4.add(accept_Button_TCP);
-        buttonPanel_main.add(buttonPanel_4);
-        
-        buttonPanel_5.add(sendButton_UDP);
-        buttonPanel_5.add(receiveButton_UDP);
-        buttonPanel_main.add(buttonPanel_5);
-        
-        buttonPanel_main.add(sendStopButton_UDP);
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.add(new JLabel("Client IP:"));
+        buttonPanel.add(inputIp);
+        buttonPanel.add(new JLabel("Broad IP:"));
+        buttonPanel.add(inputIp_udpBroad);
+        buttonPanel.add(connection_Button);
+        buttonPanel.add(connectionSetup_Button);
+        buttonPanel.add(sendButton_UDP);
+        buttonPanel.add(receiveButton_UDP);
+        buttonPanel.add(sendStopButton_UDP);
 
         // 메인 레이아웃 설정
         setLayout(new BorderLayout());
@@ -164,56 +127,37 @@ public class NewSocket extends JFrame {
         centerPanel.add(consoleScrollPane);   // 콘솔 창
 
         add(centerPanel, BorderLayout.CENTER);      // 중앙에 3개의 창을 같은 크기로 배치
-        add(buttonPanel_main, BorderLayout.SOUTH);        // 하단에 버튼 패널 배치
+        add(buttonPanel, BorderLayout.SOUTH);        // 하단에 버튼 패널 배치
         
         
         
         // 연결 버튼 이벤트 처리
-        connection_Button_TCP.addActionListener(new ActionListener() {
+        connection_Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 tcp_connection = new TcpSocketConnection();
-                String serverIP = inputIp_1.getText();
+                String serverIP = receiver_udp.startConnect_to_tcp();
                 tcp_connection.startClient(serverIP);
-                if(tcpSocketNum != 0 ) {
-                	consoleArea.append("Connection버튼 \n");
-                	consoleArea.append("["+tcpSocketNum+"]Client: "+serverIP+"가 TCP 소켓과 연결되었습니다. \n");
-                	}
-                else if(tcpSocketNum == 0 ) {
-                	consoleArea.append("Connection버튼 \n");
-                	consoleArea.append("["+tcpSocketNum+"]Client: "+serverIP+"가 TCP 소켓과 연결되었습니다. \n");
-                	tcpSocketNum++;
-                	}
-                
-                
+                consoleArea.append("Client: "+serverIP+"가 TCP 소켓과 연결되었습니다. \n");
                 
             }
         });
         //해당 버튼을 눌러야 연결버튼을 통한 소켓연결이 가능함 
      // TCP 수신 버튼 이벤트 처리
-        accept_Button_TCP.addActionListener(new ActionListener() {
+        connectionSetup_Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                
+                //server_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
                 TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter();
-                tcp_accepter.startServer(receivedMessagesArea,consoleArea);
-                if(tcpSocketNum != 0 ) {
-                	consoleArea.append("Wait for TCP버튼 \n");
-                	consoleArea.append("["+tcpSocketNum+"] TCP 소켓과 연결되었습니다. \n");
-                	}
-                else if(tcpSocketNum == 0 ) {
-                	consoleArea.append("Wait for TCP버튼 \n");
-                	consoleArea.append("["+tcpSocketNum+"] TCP 소켓과 연결되었습니다. \n");
-                	tcpSocketNum++;
-                	}
-                
+                tcp_accepter.startServer();
+                consoleArea.append("TCP 소켓 연결 완료\n");
+                System.out.println("Waiting for TCP");
             }
         });
 
         sendButton_UDP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	//receiver_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModel의 인스턴스를 받아옴
                 if (udpTimer != null) {
                     udpTimer.cancel();  // 타이머 중지 (이전에 동작 중이었다면)
                 }
@@ -227,26 +171,22 @@ public class NewSocket extends JFrame {
                     public void run() {
                     	// 주기적으로 클라이언트 응답 체크
                         if (checkAllClientsTrue(clients_tcp)) {
-                            
-                            consoleArea.append("모든 클라이언트로부터 "+"[" + sentMessageCount + "]의 에코 메시지를 받았으므로 브로드캐스트 중지\n");
-                            sentMessageCount++; // 전송 메시지 카운트 증가
-                            
-                            clients_tcp.replaceAll(element -> false); //에코메시지 수신여부 초기화 
-
+                            udpTimer.cancel();  // 모든 클라이언트가 응답했으므로 타이머 중지
+                            consoleArea.append("모든 클라이언트로부터 에코 메시지를 받았으므로 브로드캐스트 중지\n");
+                            // 수신 상태 플래그 초기화
+                            receiver_udp.resetNewMessageFlag();
+                            server_tcp.resetNewEchoMessageFlag();
                             return; // 전송 중지 후 종료
                         }
-                       if (sentMessageCount == 0) sentMessageCount++; // 첫 메시지 발송때만 카운트 증가 
-                       
-                       
-                        sender_udp.startSend(serverIP,sentMessageCount);   // 50ms마다 UDP 메시지 전송
+                        sender_udp.startClient(serverIP);  // 50ms마다 UDP 메시지 전송
                         
                         // sendMessageArea에 보내는 메시지 추가
-                        sentMessageCount_actual++;
-                        sendMessageArea.append("[" + sentMessageCount_actual +"][" +sentMessageCount + "] UDP로 전송된 메시지: 'A' * 1400 bytes\n");
+                        sentMessageCount++; // 전송 메시지 카운트 증가
+                        sendMessageArea.append("[" + sentMessageCount + "] UDP로 전송된 메시지: 'A' * 30 bytes\n");
                         
                         consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
                     }
-                }, 0, 50); // 50ms 간격으로 실행
+                }, 0, 2000); // 2s 간격으로 실행
             }
         });
         // UDP 전송 중지 버튼
@@ -266,9 +206,8 @@ public class NewSocket extends JFrame {
                 receiver_udp = new ReceiverViewModelUdp(receivedMessagesArea);  // receivedMessagesArea 전달
                 new Thread(() -> receiver_udp.startServer()).start();
                 consoleArea.append("UDP 수신 대기 중...\n");
-                
                 //UDP Broad메시지를 수신하였지 체크하는 스레드 생성 
-                StartUDPCheckThread udpCheckThread = new StartUDPCheckThread(receiver_udp,tcp_connection);
+                StartCheckThread udpCheckThread = new StartCheckThread(receiver_udp,server_tcp ,tcp_connection);
                 Thread udpCheck = new Thread(udpCheckThread);
                 udpCheck.start();
             }

@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.Socket;
 
 public class TcpSocketConnection {
-    private static int PORT = 8189;
+    private static final int PORT = 8189;
     private Socket socket;
     private Client_Tcp client; // SenderViewModel 인스턴스
     
@@ -11,11 +11,10 @@ public class TcpSocketConnection {
     public void startClient(String serverIP) {
         try {
             socket = new Socket(serverIP, PORT);
-            
             client = new Client_Tcp(socket);
             
             
-            System.out.println("Connected by TCP to " + serverIP  + " & index: " + NewSocket.clients_tcp_index);
+            System.out.println("Client: " + serverIP + " is connected by TCP" + " & index: " + NewSocket.clients_tcp_index);
             
             
             
@@ -23,10 +22,9 @@ public class TcpSocketConnection {
             e.printStackTrace();
         }
     }
-    
-
+ 
     // TCP 에코 메시지를 전송하는 메서드
-    public void sendAckMessage(String message) {
+    public void sendEchoMessage(String message) {
         if (client != null) {
             client.sendMessage_tcp(message); // Client_Tcp을 사용하여 메시지 전송
         } else {

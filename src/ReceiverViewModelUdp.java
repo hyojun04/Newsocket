@@ -72,18 +72,12 @@ public class ReceiverViewModelUdp {
                     // 데이터 수신
                     socket.receive(receivePacket);
 
+                    // 수신된 데이터 처리
+                    String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
                     // 송신자 IP 주소 가져오기
                     InetAddress senderAddress = receivePacket.getAddress();
                     String senderIP = senderAddress.getHostAddress();
-
-                    // 로컬 IP에서 보낸 메시지인지 검사
-                    if (isMessageFromLocalAddress(senderAddress)) {
-                        System.out.println("Ignored message from local IP: " + senderIP);
-                        continue; // 메시지를 무시하고 다음 메시지로 넘어감
-                    }
-
-                    // 수신된 데이터 처리
-                    String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
                     // 현재 시간을 hh:mm:ss.SSS 형식으로 가져오기
                     String timeStamp = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
@@ -95,46 +89,61 @@ public class ReceiverViewModelUdp {
 
                     // 수신 메시지 GUI에 표시
                     receive_message_num++;
-                    receivedMessagesArea.append("[" + receive_message_num + "] Received UDP message from " + senderIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");
+                    
+                    
+                    receivedMessagesArea.append("[" + receive_message_num + "] Received UDP message from " + senderIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");                    
                     System.out.println("I got Message: " + truncatedMessage);
 
-                    // 문자열을 정수로 변환 및 처리 (기존 로직 유지)
+                    // 문자열을 정수로 변환
                     String numberStr = extractLeadingNumbers(truncatedMessage);
+                    
                     if (numberStr != null) {
                         int number = Integer.parseInt(numberStr);
+                        
+                        
                         System.out.println("Extracted number: " + number);
                         System.out.println("CheckSerial number: " + checkSerial);
-
-                        if (checkSerial == number) {
+                        
+                        //한 번 이상 받은 메시지번호를 받으면 에코메시지를 보내지 않음
+                        if(checkSerial == number) {
+                        	 // newMessageReceived_udp 상태 업데이트 및 notifyAll() 호출
                             synchronized (this) {
-                                newMessageReceived_udp = false;
+                                newMessageReceived_udp = false; // 새로운 메시지를 받았을 경우
                                 System.out.println("newMessageReceived_udp set to false because same serialNumber was coming");
-                            }
-                        } else if (checkSerial != number) {
-                            receivedMessageNum = number;
-                            checkSerial++;
-                            synchronized (this) {
-                                newMessageReceived_udp = true;
-                                System.out.println("newMessageReceived_udp set to true");
-                                notifyAll();
+                                
                             }
                         }
+                        // 다음 번호의 메시지가 올 때
+                        else if(checkSerial != number) {
+                        	receivedMessageNum = number;
+                        	checkSerial++; //ex)처음 0으로 초기화 되어있는 checkSerial을 에코메시지를 보내고 난 다음 1번째의 메시지를 받았다는 의미
+                        	 // newMessageReceived_udp 상태 업데이트 및 notifyAll() 호출
+                            synchronized (this) {
+                                newMessageReceived_udp = true; // 새로운 메시지를 받았을 경우
+                                System.out.println("newMessageReceived_udp set to true");
+                                notifyAll(); // 상태가 바뀌었으므로 대기 중인 스레드에게 알림
+                            }
+                        }
+                        
+                        
                     } else {
                         System.out.println("No leading numbers found.");
                     }
+
+                   
 
                 } catch (NumberFormatException e) {
                     System.out.println("Invalid number format in received message: " + e.getMessage());
                 } catch (SocketException e) {
                     System.out.println("Socket error occurred: " + e.getMessage());
-                    break;
+                    break; // 소켓에 문제가 생기면 루프를 탈출하여 서버를 중단합니다.
                 } catch (SecurityException e) {
                     System.out.println("Security exception: " + e.getMessage());
                 } catch (IllegalArgumentException e) {
                     System.out.println("Illegal argument: " + e.getMessage());
                 } catch (Exception e) {
                     System.out.println("Unexpected error while receiving data: " + e.getMessage());
-                    e.printStackTrace();
+                    e.printStackTrace(); // 추가적인 오류 로그를 출력하여 문제를 더 정확히 파악할 수 있게 합니다.
                 }
             }
         } catch (SocketException e) {
@@ -149,19 +158,47 @@ public class ReceiverViewModelUdp {
             }
         }
     }
-
- // 메소드: 로컬 IP 주소와 일치하는지 확인
-    private boolean isMessageFromLocalAddress(InetAddress senderAddress) {
+    
+    public String startConnect_to_tcp() {
+        DatagramSocket socket = null;
         try {
-            // 로컬 호스트의 IP 주소 가져오기
-            InetAddress localAddress = InetAddress.getLocalHost();
+            socket = new DatagramSocket(PORT);
+            System.out.println("UDP Server started on port " + PORT + ". Waiting for connect to tcp...");
             
-            // 송신자의 IP 주소와 로컬 호스트의 IP 주소가 동일한지 비교
-            return senderAddress.equals(localAddress);
-        } catch (Exception e) {
-            System.out.println("Error checking local address: " + e.getMessage());
-            return false;
-        }
-    }
-}
+            // 버퍼 생성
+            byte[] buffer = new byte[BUFFER_SIZE];
 
+            // 수신할 패킷 생성
+            DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+
+            // 데이터 수신 (메시지가 올 때까지 대기)
+            socket.receive(receivePacket);
+
+            // 송신자 IP 주소 가져오기
+            InetAddress senderAddress = receivePacket.getAddress();
+            String senderIP = senderAddress.getHostAddress();
+
+            // IP 주소가 유효하면 반환, 유효하지 않으면 null 반환
+            if (senderIP != null && !senderIP.isEmpty()) {
+                System.out.println("This is serverIP: " + senderIP);
+                return senderIP;
+            } else {
+                System.out.println("No server IP");
+                return null;
+            }
+        } catch (SocketException e) {
+            System.out.println("Failed to bind UDP socket to port " + PORT + ": " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Server startup error: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // 메시지를 수신한 후 소켓을 닫아 더 이상 메시지를 받지 않도록 함.
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+                System.out.println("UDP Server socket closed.");
+            }
+        }
+        return null; // 메시지를 수신하지 못했거나 오류 발생 시 null 반환
+    }
+
+}
