@@ -1,17 +1,23 @@
 import java.io.IOException;
-import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import javax.swing.JTextArea;
 
-public class TcpConnectionAccepter {
-    private static int PORT = 8189; // 수신할 포트
+public class TcpConnectionAccepter implements Runnable {
+    private static final int PORT = 8189; // 수신할 포트
     private ServerSocket serverSocket;
     
+    private JTextArea receivedMessagesArea;
+    private JTextArea consoleArea;
+
+    public TcpConnectionAccepter(JTextArea receivedMessagesArea, JTextArea consoleArea) {
+        this.receivedMessagesArea = receivedMessagesArea;
+        this.consoleArea = consoleArea;
+    }
     
 
-    public void startServer(JTextArea receivedMessagesArea,JTextArea consoleArea) {
-        while(true) {
+    public void run() {
+        
         try {
             serverSocket = new ServerSocket(PORT);
             System.out.println("Waiting for connection...");
@@ -19,33 +25,23 @@ public class TcpConnectionAccepter {
             // 클라이언트 연결을 대기하면서, 각 연결에 대해 새로운 스레드를 생성
             // 클라이언트 최대 개수 설정
             
-            while (NewSocket.clients_tcp_index < 1) {
-            	
-            		Socket clientSocket = serverSocket.accept(); // 클라이언트 연결 수락
-                    System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
+            while (true) {
+                Socket clientSocket = serverSocket.accept(); // 클라이언트 연결 수락
+                
+                /*UDP broad로 Server쪽 IP 전송하는 매커니즘 추가*/
+                System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
 
-                    // 각 클라이언트에 대해 새로운 핸들러 스레드를 생성
-                    ClientHandler clientHandler = new ClientHandler(clientSocket, this, receivedMessagesArea);
-                    new Thread(clientHandler).start();
-            	
-            	
-                
-                
+                // 각 클라이언트에 대해 새로운 핸들러 스레드를 생성
+                ClientHandler clientHandler = new ClientHandler(clientSocket, this, receivedMessagesArea);
+                new Thread(clientHandler).start();
             }
-            consoleArea.append("TCP 소켓 연결완료 \n");
-            System.out.println("All TCP Sockets are connnected");
-            break;
-        } 
-        catch(BindException e) {
-    		System.out.println("Port: "+PORT +"is already used");
-    		PORT++;
-    	}
-    	catch(IOException e) {
-    		e.printStackTrace();
-    		break;
-    	}
+            //consoleArea.append("TCP 소켓 연결완료 \n");
+            //System.out.println("All TCP Sockets are connnected");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-}
 
     // 각 클라이언트와의 통신을 처리하는 클래스
     public class ClientHandler implements Runnable {
