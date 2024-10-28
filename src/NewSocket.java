@@ -98,7 +98,7 @@ public class NewSocket extends JFrame {
         inputIp_udpBroad = new JTextField("172.30.1.255",15);//192.168.223.255, 192.168.0.255
         // 버튼과 텍스트 필드를 담을 패널
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.add(new JLabel("Client IP:"));
+        buttonPanel.add(new JLabel("Server IP:"));
         buttonPanel.add(inputIp);
         buttonPanel.add(new JLabel("Broad IP:"));
         buttonPanel.add(inputIp_udpBroad);

@@ -1,7 +1,9 @@
 public class StartTCPCheckThread implements Runnable {
     private final Server_Tcp serverTcp;
     private final TcpConnectionAccepter.ClientHandler handler;
-
+    
+    volatile boolean runningFlag = true;
+    
     public StartTCPCheckThread(Server_Tcp serverTCP, TcpConnectionAccepter.ClientHandler handler) {
         this.serverTcp = serverTCP;
         this.handler = handler;
@@ -9,7 +11,7 @@ public class StartTCPCheckThread implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        while (runningFlag) {
             synchronized (serverTcp) {
                 while (!serverTcp.hasNewEchoMessage()) {
                     try {
@@ -32,5 +34,9 @@ public class StartTCPCheckThread implements Runnable {
 
             }
         }
+    
+    public void stopThread() {
+    	runningFlag = false;
+    }
     
 }
