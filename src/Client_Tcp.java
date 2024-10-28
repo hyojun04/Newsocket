@@ -27,7 +27,7 @@ public class Client_Tcp {
 
             // 메시지 전송 + 타임스탬프 추가
             out.println(message + " From Window " + "[" + timeStamp + "]");
-            System.out.println(message + " Echo message gets sent");
+            System.out.println(message + " Ack message gets sent");
 
         } catch (Exception e) {
             e.printStackTrace();

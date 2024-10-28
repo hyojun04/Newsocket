@@ -208,7 +208,7 @@ public class NewSocket extends JFrame {
                 new Thread(() -> receiver_udp.startServer()).start();
                 consoleArea.append("UDP 수신 대기 중...\n");
                 //UDP Broad메시지를 수신하였지 체크하는 스레드 생성 
-                StartCheckThread udpCheckThread = new StartCheckThread(receiver_udp,server_tcp ,tcp_connection);
+                StartUDPCheckThread udpCheckThread = new StartUDPCheckThread(receiver_udp,server_tcp ,tcp_connection);
                 Thread udpCheck = new Thread(udpCheckThread);
                 udpCheck.start();
             }
