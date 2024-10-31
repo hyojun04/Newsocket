@@ -199,7 +199,7 @@ public class NewSocket extends JFrame {
                        if (sentMessageCount == 0) sentMessageCount++; // 첫 메시지 발송때만 카운트 증가 
                        
                        
-                        sender_udp.startSend(serverIP,sentMessageCount);   // 50ms마다 UDP 메시지 전송
+                       sender_udp.startSend(serverIP,sentMessageCount,61440);   // 50ms마다 60KB의 UDP 메시지 전송
                         
                         // sendMessageArea에 보내는 메시지 추가
                         sentMessageCount_actual++;

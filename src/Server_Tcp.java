@@ -9,6 +9,7 @@ public class Server_Tcp {
     private JTextArea receivedMessagesArea;  // GUI의 receive message 창
     private volatile boolean newEchoReceived_tcp = false; // 에코 메시지 수신 여부
     private int receive_message_num = 0;
+    private String lastReceivedMessage = ""; // 최근 수신된 메시지 저장
 
     // 생성자에서 JTextArea 전달 받음
     public Server_Tcp(Socket socket, JTextArea receivedMessagesArea) {
@@ -27,6 +28,11 @@ public class Server_Tcp {
     public void resetNewEchoMessageFlag() {
         newEchoReceived_tcp = false;
     }
+    
+    // 최근 수신된 메시지 반환 메서드 추가
+    public String getReceivedMessage() {
+        return lastReceivedMessage;
+    }
 
     public void startReceiving() throws IOException { //예외 throw하여 ClientHandler에서 처리하도록함
         BufferedReader in = null;
@@ -44,6 +50,7 @@ public class Server_Tcp {
             while (!socket.isClosed() && (receivedMessage = in.readLine()) != null) {
                 // 수신된 메시지 처리
                 receive_message_num++;
+                lastReceivedMessage = receivedMessage; // 최근 수신된 메시지 저장
                 receivedMessagesArea.append("[" + receive_message_num + "] 수신된 메시지 from " + clientIP + ": " + receivedMessage + "\n");
                 System.out.println("수신된 메시지 from " + clientIP + ": " + receivedMessage);
                 
