@@ -3,6 +3,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import javax.swing.JTextArea;
 
@@ -10,16 +11,26 @@ public class ReceiverViewModelUdp {
 
     private static final int PORT = 1996;
     private static final int BUFFER_SIZE = 1024;
+    private static final boolean MESSAGE_NUM = true;
+    private static final boolean PACKET_NUM = false;
     private JTextArea receivedMessagesArea;  // GUI의 receive message 창
     private static int receive_message_num = 0;
     private volatile boolean newMessageReceived_udp = false;
     public int receivedMessageNum; 
-    private static int checkSerial; //받은 UDP 메시지가 몇 번째 메시지인지 저장
+    public static int numberStr_message;
+    public static int numberStr_packet;
+    //private static int checkSerial; //받은 UDP 메시지가 몇 번째 메시지인지 저장
     
     //받은 UDP 메시지가 몇 번째 메시지인지 저장하고 있는 checkSerial 변수를 출력하는 메소드
-    public int Print_checkSerial() {
+    /*public int Print_checkSerial() {
     	return checkSerial;
-    }
+    }*/
+    
+    // 전체 패킷 수와 수신 여부를 추적하는 배열
+    private static final int TOTAL_PACKETS = 61; // 전체 패킷 수 (필요에 맞게 수정)
+    private boolean[] checkSerial = new boolean[TOTAL_PACKETS + 1]; // 인덱스 0은 사용하지 않음
+    private int receivedPacketCount = 0;
+    
     // 생성자에서 JTextArea 전달 받음
     public ReceiverViewModelUdp(JTextArea receivedMessagesArea) {
         this.receivedMessagesArea = receivedMessagesArea;
@@ -36,22 +47,25 @@ public class ReceiverViewModelUdp {
     public void resetNewMessageFlag() {
         newMessageReceived_udp = false;
     }
-    public static String extractLeadingNumbers(String input) {
-        // 정규식을 사용해 문자열의 앞부분에서 숫자만 추출
-        StringBuilder numberStr = new StringBuilder();
-        
-        // 문자열을 하나씩 검사해서 숫자인 경우만 numberStr에 추가
-        for (char c : input.toCharArray()) {
-            if (Character.isDigit(c)) {
-                numberStr.append(c);
-            } else {
-                // 숫자가 아닌 문자를 만나면 반복을 중지하고 숫자 부분만 반환
-                break;
-            }
+    
+    // getLeading을 true로 주면 "_"를 기준으로 앞의 숫자를, false로 주면 뒤의 숫자를 return함
+    public static int extractNumberPart(String input, boolean getLeading) { 
+        // 정규식을 사용하여 숫자와 `_`를 기준으로 문자열을 분리
+        String[] parts = input.split("_");
+
+        if (parts.length == 2) {
+            String leadingNumber = parts[0].replaceAll("\\D", ""); // 앞부분 숫자만 추출
+            String trailingNumber = parts[1].replaceAll("\\D", ""); // 뒷부분 숫자만 추출
+            
+            // getLeading이 true일 경우 앞부분 숫자 반환, false일 경우 뒷부분 숫자 반환
+            String numberString = getLeading ? leadingNumber : trailingNumber;
+            
+            // 빈 문자열을 처리하여 int로 변환
+            return numberString.isEmpty() ? 0 : Integer.parseInt(numberString);
+        } else {
+            // 형식이 맞지 않을 경우 0 반환
+            return 0;
         }
-        
-        // 숫자가 있으면 문자열 형태로 반환하고, 없으면 null 반환
-        return numberStr.length() > 0 ? numberStr.toString() : null;
     }
 
     public void startServer() {
@@ -94,36 +108,38 @@ public class ReceiverViewModelUdp {
                     receivedMessagesArea.append("[" + receive_message_num + "] Received UDP message from " + senderIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");                    
                     System.out.println("I got Message: " + truncatedMessage);
 
-                    // 문자열을 정수로 변환
-                    String numberStr = extractLeadingNumbers(truncatedMessage);
+                    numberStr_packet = extractNumberPart(truncatedMessage, PACKET_NUM);
+                    numberStr_message = extractNumberPart(truncatedMessage, MESSAGE_NUM);
                     
-                    if (numberStr != null) {
-                        int number = Integer.parseInt(numberStr);
-                        
-                        
-                        System.out.println("Extracted number: " + number);
-                        System.out.println("CheckSerial number: " + checkSerial);
-                        
-                        //한 번 이상 받은 메시지번호를 받으면 에코메시지를 보내지 않음
-                        if(checkSerial == number) {
-                        	 // newMessageReceived_udp 상태 업데이트 및 notifyAll() 호출
-                            synchronized (this) {
-                                newMessageReceived_udp = false; // 새로운 메시지를 받았을 경우
-                                System.out.println("newMessageReceived_udp set to false because same serialNumber was coming");
-                                
+                    if (numberStr_packet != 0 ) {                      
+                        //새로운 패킷이 왔을 때
+                        if (numberStr_packet > 0 && numberStr_packet <= TOTAL_PACKETS && !checkSerial[numberStr_packet]) {
+                        	checkSerial[numberStr_packet] = true; // 해당 패킷을 수신한 것으로 표시
+                            System.out.println("packet["+numberStr_packet+"]가 ture로 바뀜");
+                            receivedPacketCount++; // 새 패킷 수신 시 count 증가
+                            System.out.println("receivedPacketCount:"+receivedPacketCount);
+                            //패킷이 모두 도착했을 때
+                            if (receivedPacketCount == TOTAL_PACKETS) {
+                            	receivedMessageNum ++;
+                            	receivedPacketCount = 0;
+                            	Arrays.fill(checkSerial, false);
                             }
-                        }
-                        // 다음 번호의 메시지가 올 때
-                        else if(checkSerial != number) {
-                        	receivedMessageNum = number;
-                        	checkSerial++; //ex)처음 0으로 초기화 되어있는 checkSerial을 에코메시지를 보내고 난 다음 1번째의 메시지를 받았다는 의미
-                        	 // newMessageReceived_udp 상태 업데이트 및 notifyAll() 호출
                             synchronized (this) {
                                 newMessageReceived_udp = true; // 새로운 메시지를 받았을 경우
                                 System.out.println("newMessageReceived_udp set to true");
                                 notifyAll(); // 상태가 바뀌었으므로 대기 중인 스레드에게 알림
                             }
                         }
+                         
+                        //한 번 이상 받은 메시지번호를 받으면 에코메시지를 보내지 않음
+                        else {
+                        	 // newMessageReceived_udp 상태 업데이트 및 notifyAll() 호출
+                            synchronized (this) {
+                                newMessageReceived_udp = false; // 새로운 메시지를 받았을 경우
+                                System.out.println("newMessageReceived_udp set to false because same serialNumber was coming");
+                                
+                             }
+                         }
                         
                         
                     } else {

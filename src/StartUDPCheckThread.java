@@ -23,7 +23,7 @@ public class StartUDPCheckThread implements Runnable {
 
                 // 새로운 메시지가 수신된 경우
                 System.out.println("UDP broadcast message is sent");
-                tcpConnection.sendAckMessage("Ack message " + receiver_udp.receivedMessageNum + "  ");
+                tcpConnection.sendAckMessage(receiver_udp.numberStr_message + "_" + receiver_udp.numberStr_packet); // ack 메시지로 message num_packet num만 보내주도록 변경
                 System.out.println("(1) UDP Message state: " + receiver_udp.hasNewMessage());
 
                 // 플래그 초기화
