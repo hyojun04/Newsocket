@@ -7,7 +7,7 @@ public class Server_Tcp {
     private Socket socket;
     private static final int PORT = 8189;
     private JTextArea receivedMessagesArea;  // GUI의 receive message 창
-    private volatile boolean newEchoReceived_tcp = false; // 에코 메시지 수신 여부
+    private volatile boolean newAckReceived_tcp = false; // 에코 메시지 수신 여부
     private int receive_message_num = 0;
 
     // 생성자에서 JTextArea 전달 받음
@@ -21,11 +21,11 @@ public class Server_Tcp {
     }
     
     public boolean hasNewEchoMessage() {
-        return newEchoReceived_tcp;
+        return newAckReceived_tcp;
     }
 
     public void resetNewEchoMessageFlag() {
-        newEchoReceived_tcp = false;
+        newAckReceived_tcp = false;
     }
 
     public void startReceiving() throws IOException { //예외 throw하여 ClientHandler에서 처리하도록함
@@ -48,8 +48,8 @@ public class Server_Tcp {
                 System.out.println("수신된 메시지 from " + clientIP + ": " + receivedMessage);
                 
                 synchronized (this) {
-                    newEchoReceived_tcp = true; // 에코 메시지를 받았을 경우
-                    System.out.println("newEchoMessage was coming");
+                    newAckReceived_tcp = true; // 에코 메시지를 받았을 경우
+                    System.out.println("newAckMessage was coming");
                     notifyAll();
                 }
             }

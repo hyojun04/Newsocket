@@ -21,10 +21,13 @@ public class StartTCPCheckThread implements Runnable {
                         e.printStackTrace();
                     }
                 }
-                System.out.println("TCP Echo message is got");
+                System.out.println("TCP Ack message is got");
                 
-                NewSocket.clients_tcp.set(handler.permanent_id,true);
-            	if(NewSocket.clients_tcp.get(handler.permanent_id) == true)
+                //인덱스 번호에 해당하는 client클래스 배열 호출
+                ClientInfo clientinfo = TcpConnectionManager.getClient(handler.permanent_id);
+                clientinfo.setNewMsg(true);
+                
+            	if(clientinfo.getNewMsg() == true)
                 	System.out.println("Client Num: "+handler.permanent_id+" Changed index value TRUE");
                 
 
@@ -36,7 +39,14 @@ public class StartTCPCheckThread implements Runnable {
         }
     
     public void stopThread() {
-    	runningFlag = false;
+    	//해당 인덱스를 true로 고정하여 상관없이 프로그램이 작동하도록함
+    	
+    	 //인덱스 번호에 해당하는 client클래스 배열 호출 후 연결상태 false, 새로운 메시지 true 고정
+        ClientInfo clientinfo = TcpConnectionManager.getClient(handler.permanent_id);
+        System.out.println("Client : "+clientinfo.getIp()+" is disconnected");
+        clientinfo.setNewMsg(true);
+    	clientinfo.setConnected(false);
+    	runningFlag = false;    	
     }
     
 }

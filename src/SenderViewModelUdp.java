@@ -45,24 +45,5 @@ public class SenderViewModelUdp {
         }
     }
     
-    public void startSend(String broadIP) {
-    	DatagramSocket socket = null;
-    	try {
-    		socket = new DatagramSocket();
-            InetAddress serverAddress = InetAddress.getByName(broadIP);
-            String message = "Connect here";
-            byte[] messageBytes = message.getBytes();
-            DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length, serverAddress, PORT);
-            socket.send(packet);
-            System.out.println("UDP serverIp is sending");
-    	}
-    	catch (Exception e) {
-    		e.printStackTrace();
-    	}
-    	finally {
-    		if (socket != null && !socket.isClosed()) {
-    			socket.close();
-    		}
-    	}
-    }
+    
 }
