@@ -104,7 +104,7 @@ public class NewSocket extends JFrame {
         stopSetup_Button = new JButton("Stop Connection Setup");
         // TCP 소켓의 IP 입력 필드
         inputIp = new JTextField("192.168.0.228", 15);
-        inputIp_udpBroad = new JTextField("172.30.1.255",15);//192.168.223.255, 192.168.0.255
+        inputIp_udpBroad = new JTextField("192.168.0.255",15);//192.168.223.255, 192.168.0.255
        
         
         
@@ -240,7 +240,7 @@ public class NewSocket extends JFrame {
                     @Override
                     public void run() {
                     	// 주기적으로 클라이언트 응답 체크
-                        if (tcpconnectionmanager.checkAllClientsConnected()) {
+                        if (tcpconnectionmanager.checkAllClientsNewMessage()) {
                             
                             consoleArea.append("모든 클라이언트로부터 "+"[" + sentMessageCount + "]의 에코 메시지를 받았으므로 브로드캐스트 중지\n");
                             sentMessageCount++; // 전송 메시지 카운트 증가

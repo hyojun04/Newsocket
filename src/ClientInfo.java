@@ -1,14 +1,17 @@
+import java.net.Socket;
 import java.util.ArrayList;
 
 // 클라이언트의 정보를 담은 클래스
 public class ClientInfo {
     String ip;
-    Boolean newMsg;
+    Socket mysocket;
     Boolean connected;
-
+    Boolean newMsg;
+    
     // 구성자
-    public ClientInfo(String ip, Boolean connected, Boolean newMsg) {
+    public ClientInfo(String ip,Socket mysocket, Boolean connected, Boolean newMsg) {
         this.ip = ip;
+        this.mysocket = mysocket;
         this.connected = connected;
         this.newMsg = newMsg;        
     }
@@ -17,11 +20,15 @@ public class ClientInfo {
     public String getIp() {
         return ip;
     }
-
+    
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    public Socket getSocket() {
+        return mysocket;
+    }
+   
     public Boolean getNewMsg() {
         return newMsg;
     }
@@ -44,8 +51,8 @@ class TcpConnectionManager {
     public static ArrayList<ClientInfo> clients_tcp = new ArrayList<>();
 
     // Method to add a client to the list
-    public static void addClient(String ip, Boolean connected ,Boolean newMsg) {
-        clients_tcp.add(new ClientInfo(ip, connected, newMsg));
+    public static void addClient(String ip,Socket mysocket ,Boolean connected ,Boolean newMsg) {
+        clients_tcp.add(new ClientInfo(ip, mysocket ,connected, newMsg));
         
     }
  // Method to add a client to the list
@@ -59,7 +66,7 @@ class TcpConnectionManager {
         return clients_tcp.get(index);
     }
     
-    public boolean checkAllClientsConnected() {
+    public boolean checkAllClientsNewMessage() {
         for (ClientInfo client : clients_tcp) {
             if (!client.getNewMsg()) {  // 연결되지 않은 클라이언트가 있으면 false 반환
                 return false;
@@ -71,7 +78,7 @@ class TcpConnectionManager {
     
     public void AllClientsSetFalse() {
     	for (ClientInfo client: clients_tcp) {
-    		if(client.getConnected()) //연결되어 있는 클라이언트만 한하여 새로운메시지에대한 boolean false로 변경
+    		if(client.getConnected()) //연결되어 있는 클라이언트만 한하여 새로운메시지에대한 boolean false로 초기화
     		client.setNewMsg(false);
     	}
     }

@@ -64,12 +64,12 @@ public class TcpConnectionAccepter implements Runnable {
                 if (NewSocket.clients_tcp_index == 0) {
                     permanent_id = NewSocket.clients_tcp_index;
                     System.out.println("Client index 0 is added");
-                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),true,false);
+                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
                     NewSocket.clients_tcp_index++;
                 } else {
                     permanent_id = NewSocket.clients_tcp_index;
                     System.out.println("Client index: "+permanent_id+ " is added");
-                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),true,false);
+                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
                     NewSocket.clients_tcp_index++;
                 }
                 System.out.println("Client: " + clientSocket.getInetAddress() + " is connected by TCP"
