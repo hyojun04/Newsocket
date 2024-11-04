@@ -14,11 +14,8 @@ public class SenderViewModelUdp {
             System.out.println("UDP is connected.");
 
             //크기를 설정하여 연속된 "A" 문자 생성
-            int string_size = 1400; /*
-            networksetup -getMTU "Wi-Fi"
-            sudo networksetup -setMTU "Wi-Fi" 9000
-			명령어를 통한 Maximum transmission Unit 수정요망 
-            */
+            int string_size = 1400; 
+            
             StringBuilder messageBuilder = new StringBuilder(string_size);
             for (int i = 0; i < string_size; i++) {
                 messageBuilder.append('A');
@@ -44,4 +41,6 @@ public class SenderViewModelUdp {
             }
         }
     }
+    
+    
 }
