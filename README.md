@@ -1,5 +1,5 @@
 ## NewSocketProgramming
-Collaboration with UDP and TCP
+Collaboration with UDP and TCP added Byte Array
 # Main branch
 Connect multiple clients each PORT but ack message is sent in the same PORT number.
 
