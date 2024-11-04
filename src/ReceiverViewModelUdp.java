@@ -104,39 +104,21 @@ public class ReceiverViewModelUdp {
                     // 문자열을 정수로 변환
                     String numberStr = extractLeadingNumbers(truncatedMessage);
                     
+                    
                     if (numberStr != null) {
-                        int number = Integer.parseInt(numberStr);
                         
-                        
+                    	int number = Integer.parseInt(numberStr);
+                    	//change 1bit by 1bit
+                    	toggleNewMsgBit();
+                    	
                         System.out.println("Extracted number: " + number);
-                        System.out.println("CheckSerial number: " + checkSerial);
-                        
-                        //한 번 이상 받은 메시지번호를 받으면 에코메시지를 보내지 않음
-                        if(checkSerial == number) {
-                        	 // newMessageReceived_udp 상태 업데이트 및 notifyAll() 호출
-                            synchronized (this) {
-                                //newMessageReceived_udp = false; // 새로운 메시지를 받았을 경우
-                            	
-                                System.out.println("newMessageReceived_udp set to false because same serialNumber was coming");
-                                
-                            }
-                        }
-                        // 다음 번호의 메시지가 올 때
-                        else if(checkSerial != number) {
-                        	receivedMessageNum = number;
-                        	checkSerial++; //ex)처음 0으로 초기화 되어있는 checkSerial을 에코메시지를 보내고 난 다음 1번째의 메시지를 받았다는 의미
-                        	 // newMessageReceived_udp 상태 업데이트 및 notifyAll() 호출
-                            synchronized (this) {
-                                //newMessageReceived_udp = true; // 새로운 메시지를 받았을 경우
-                            	//checkNewmessage 임의로 1bit씩 늘림
-                                toggleNewMsgBit();
-                                System.out.println("newMessageReceived_udp set to true");
-                                //notifyAll(); // 상태가 바뀌었으므로 대기 중인 스레드에게 알림
-                            }
-                        }
                         
                         
-                    } else {
+                       
+                        
+                        
+                    } 
+                    else {
                         System.out.println("No leading numbers found.");
                     }
 
@@ -233,7 +215,7 @@ public class ReceiverViewModelUdp {
                     // 각 바이트의 특정 비트가 0인지 확인
                     if ((checkNewMessage[i] & (1 << bit)) == 0) {
                     	checkNewMessage[i] |= (1 << bit); // 해당 비트를 1로 설정
-                    	System.out.println(i+"번째 byte 배열의 " +bit +"번 째 자리 bit값 1로 변경");
+                    	System.out.println("["+i+"]byte Array [" +bit +"] bit changes its value 1");
                         return; // 비트를 하나만 1로 바꾸고 메소드 종료
                     }
                 }
