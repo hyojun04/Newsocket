@@ -11,13 +11,31 @@ public class ReceiverViewModelUdp {
 
     private static final int PORT = 1996;
     private static final int BUFFER_SIZE = 1024;
+    private static final int TOTAL_PACKETS = 61; // 전체 패킷 수 (필요에 맞게 수정)
+    private static final boolean MESSAGE_NUM = true;
+    private static final boolean PACKET_NUM = false;
     private JTextArea receivedMessagesArea;  // GUI의 receive message 창
     private static int receive_message_num = 0;
     private volatile boolean newMessageReceived_udp = false;
-    public int receivedMessageNum; 
+    public static int receivedMessageNum = 1; //현재 받고 있는 메시지 번호
+    public static int array_index= 0;
+    public static int ignored_bits = 0;
     private static int checkSerial; //받은 UDP 메시지가 몇 번째 메시지인지 저장
     
-    public static byte[] checkNewMessage;
+    public static byte[] checkNewMessage; // 받은 패킷을 체크하는 배열
+    public static byte[] lastMessage; // 이전 배열(배열에 변화가 생겼을 때만 ack 전송)
+    
+    public static int calculateBits(int total_packets, int mode) { //byte배열을 사용하기 때문에 패킷 수가 8의 배수가 아니면 사용하지 않는 bit가 생김
+        if (mode == 0) {
+            // mode가 0이면 byte 배열 인덱스 계산
+        	return (total_packets + 7) / 8;
+        } else if (mode == 1) {
+            // mode가 1이면 무시할 상위 비트 개수 계산
+            return 8 - (total_packets % 8);
+        } else {
+            throw new IllegalArgumentException("Invalid mode: mode should be 0 or 1");
+        }
+    }
     
     //받은 UDP 메시지가 몇 번째 메시지인지 저장하고 있는 checkSerial 변수를 출력하는 메소드
     public int Print_checkSerial() {
@@ -39,28 +57,34 @@ public class ReceiverViewModelUdp {
     public void resetNewMessageFlag() {
         newMessageReceived_udp = false;
     }
-    public static String extractLeadingNumbers(String input) {
-        // 정규식을 사용해 문자열의 앞부분에서 숫자만 추출
-        StringBuilder numberStr = new StringBuilder();
-        
-        // 문자열을 하나씩 검사해서 숫자인 경우만 numberStr에 추가
-        for (char c : input.toCharArray()) {
-            if (Character.isDigit(c)) {
-                numberStr.append(c);
-            } else {
-                // 숫자가 아닌 문자를 만나면 반복을 중지하고 숫자 부분만 반환
-                break;
-            }
+    // getLeading을 true로 주면 "_"를 기준으로 앞의 숫자를, false로 주면 뒤의 숫자를 return함
+    public static int extractNumberPart(String input, boolean getLeading) {
+        // 정규식을 사용하여 숫자와 `_`를 기준으로 문자열을 분리
+        String[] parts = input.split("_");
+
+        if (parts.length == 2) {
+            String leadingNumber = parts[0].replaceAll("\\D", ""); // 앞부분 숫자만 추출
+            String trailingNumber = parts[1].replaceAll("\\D", ""); // 뒷부분 숫자만 추출
+           
+            // getLeading이 true일 경우 앞부분 숫자 반환, false일 경우 뒷부분 숫자 반환
+            String numberString = getLeading ? leadingNumber : trailingNumber;
+           
+            // 빈 문자열을 처리하여 int로 변환
+            return numberString.isEmpty() ? 0 : Integer.parseInt(numberString);
+        } else {
+            // 형식이 맞지 않을 경우 0 반환
+            return 0;
         }
-        
-        // 숫자가 있으면 문자열 형태로 반환하고, 없으면 null 반환
-        return numberStr.length() > 0 ? numberStr.toString() : null;
     }
+
 
     public void startServer() {
         DatagramSocket socket = null;
-        //임의로 2바이트로 배열생성
-        checkNewMessage = new byte[2];
+        array_index = calculateBits(TOTAL_PACKETS, 0);
+        ignored_bits = calculateBits(TOTAL_PACKETS, 1);
+        //패킷 수에 맞는 배열 생성
+        checkNewMessage = new byte[array_index]; // 테스트하기 위해 미리 지정
+        lastMessage = new byte[array_index];
         
         try {
             socket = new DatagramSocket(PORT);
@@ -101,25 +125,20 @@ public class ReceiverViewModelUdp {
                     receivedMessagesArea.append("[" + receive_message_num + "] Received UDP message from " + senderIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");                    
                     System.out.println("I got Message: " + truncatedMessage);
 
-                    // 문자열을 정수로 변환
-                    String numberStr = extractLeadingNumbers(truncatedMessage);
+                    // 메시지 번호와 패킷 번호 추출
+                    int message_num = extractNumberPart(truncatedMessage,MESSAGE_NUM);
+                    int packet_num = extractNumberPart(truncatedMessage,PACKET_NUM);
                     
                     
-                    if (numberStr != null) {
+                    if (receivedMessageNum == message_num) { // 맞는 메시지 번호가 오면
                         
-                    	int number = Integer.parseInt(numberStr);
-                    	//change 1bit by 1bit
-                    	toggleNewMsgBit();
-                    	
-                        System.out.println("Extracted number: " + number);
-                        
-                        
-                       
-                        
-                        
+               
+                    	//받은 패킷 번호에 맞는 배열의 index를 set
+                    	SetNewMsgBit(packet_num);
+                                                    
                     } 
                     else {
-                        System.out.println("No leading numbers found.");
+                        System.out.println("Received wrong message");
                     }
 
                    
@@ -193,35 +212,26 @@ public class ReceiverViewModelUdp {
         return null; // 메시지를 수신하지 못했거나 오류 발생 시 null 반환
     }
     
- // checkNewMessage 배열의 비트를 순차적으로 0에서 1로 바꾸는 메소드
-    public void toggleNewMsgBit() {
-        boolean allBitsOne = true; // 모든 비트가 1인지 확인하는 플래그
+    // 수신한 패킷 번호에 맞는 bit를 set 시킴
+    public void SetNewMsgBit(int packet_num) {
+            // packet_num의 위치에 해당하는 비트를 설정(0번째 비트부터 채움)
+            int byteIndex = (packet_num-1) / 8;   // 해당 비트가 속한 바이트 인덱스
+            int bitIndex = (packet_num-1) % 8;    // 해당 바이트 내의 비트 위치
 
-        // 모든 비트가 1인지 검사
-        for (byte b : checkNewMessage) {
-            if (b != (byte) 0xFF) { // 만약 한 바이트라도 0xFF(11111111)가 아니라면
-                allBitsOne = false;
-                break;
-            }
-        }
-
-        if (allBitsOne) {
-            // 모든 비트가 1인 경우 모든 비트를 0으로 초기화
-            Arrays.fill(checkNewMessage, (byte) 0);
-        } else {
-            // 모든 비트가 1이 아니라면 첫 번째 0인 비트를 1로 변경
-            for (int i = 0; i < checkNewMessage.length; i++) {
-                for (int bit = 0; bit < 8; bit++) {
-                    // 각 바이트의 특정 비트가 0인지 확인
-                    if ((checkNewMessage[i] & (1 << bit)) == 0) {
-                    	checkNewMessage[i] |= (1 << bit); // 해당 비트를 1로 설정
-                    	System.out.println("["+i+"]byte Array [" +bit +"] bit changes its value 1");
-                        return; // 비트를 하나만 1로 바꾸고 메소드 종료
-                    }
-                }
-            }
-        }
-    }
+            // 해당 바이트 내에서 bitIndex 위치의 비트가 0인지 1인지 확인
+            if ((checkNewMessage[byteIndex] & (1 << bitIndex)) == 0) {
+                // 비트가 0이라면 1로 설정
+                checkNewMessage[byteIndex] |= (1 << bitIndex);
+                System.out.println("Set checkNewMessage[" + packet_num + "]:");
+                StartUDPCheckThread.printByteArrayAsBinary(checkNewMessage); //배열 출력    
+            } else {
+                // 이미 비트가 1인 경우
+                System.out.println("checkNewMessage[" + packet_num + "] is already set to 1.");
+              }
+           }
+  }            
+        
 
 
-}
+
+
