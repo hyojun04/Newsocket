@@ -6,11 +6,11 @@ public class SenderViewModelUdp {
     private static final int PORT = 1996;
     private static final int PACKET_SIZE = 1024; // 단위 패킷 크기 (1KB)
 
-    public void startSend(String serverIP, int messageNum, int messageSize) {
+    public void startSend(String serverIP, int messageNum, int messageSize) { // messageSize는 보내고자 하는 메시지의 크기(60KB로 설정)
         DatagramSocket socket = null;
 
         try {
-        	socket = new DatagramSocket();
+            socket = new DatagramSocket();
             InetAddress serverAddress = InetAddress.getByName(serverIP);
             System.out.println("UDP is connected.");
 
@@ -57,26 +57,5 @@ public class SenderViewModelUdp {
                 socket.close();
             }
         }
-    }
-    
-    public void startSend(String broadIP) {
-    	DatagramSocket socket = null;
-    	try {
-    		socket = new DatagramSocket();
-            InetAddress serverAddress = InetAddress.getByName(broadIP);
-            String message = "Connect here";
-            byte[] messageBytes = message.getBytes();
-            DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length, serverAddress, PORT);
-            socket.send(packet);
-            System.out.println("UDP serverIp is sending");
-    	}
-    	catch (Exception e) {
-    		e.printStackTrace();
-    	}
-    	finally {
-    		if (socket != null && !socket.isClosed()) {
-    			socket.close();
-    		}
-    	}
     }
 }

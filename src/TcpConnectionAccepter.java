@@ -24,15 +24,16 @@ public class TcpConnectionAccepter implements Runnable {
             serverSocket = new ServerSocket(PORT);
             System.out.println("Waiting for connection...");
 
-            // 클라이언트 연결을 대기하면서, 각 연결에 대해 새로운 스레드를 생성
-            // 클라이언트 최대 개수 설정
+            // 클라이언트 연결을 대기하면서, 각 연결에 대해 새로운 스레드를 생성            
             
             while (true) {
                 Socket clientSocket = serverSocket.accept(); // 클라이언트 연결 수락
                 
                 /*UDP broad로 Server쪽 IP 전송하는 매커니즘 추가*/
-                System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
-                consoleArea.append("Client connected: " + clientSocket.getInetAddress().getHostAddress()+"\n");
+                String clientIP = clientSocket.getInetAddress().getHostAddress();
+                System.out.println("Client connected: " + clientIP+"\n");
+                consoleArea.append("Client connected: " + clientIP+"\n");
+              
                 // 각 클라이언트에 대해 새로운 핸들러 스레드를 생성
                 ClientHandler clientHandler = new ClientHandler(clientSocket, this, receivedMessagesArea);
                 new Thread(clientHandler).start();
@@ -58,18 +59,20 @@ public class TcpConnectionAccepter implements Runnable {
             this.clientSocket = clientSocket;
 
             // 인덱스를 설정하고, 연결된 클라이언트를 처리할 수 있도록 설정
-            synchronized (NewSocket.clients_tcp) {
+            synchronized (NewSocket.tcpconnectionmanager) {
                 if (NewSocket.clients_tcp_index == 0) {
                     permanent_id = NewSocket.clients_tcp_index;
-                    NewSocket.clients_tcp.set(NewSocket.clients_tcp_index, false);
+                    System.out.println("Client index 0 is added");
+                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
                     NewSocket.clients_tcp_index++;
                 } else {
                     permanent_id = NewSocket.clients_tcp_index;
-                    NewSocket.clients_tcp.add(NewSocket.clients_tcp_index, false);
+                    System.out.println("Client index: "+permanent_id+ " is added");
+                    TcpConnectionManager.addClient(clientSocket.getInetAddress().getHostAddress(),clientSocket,true,false);
                     NewSocket.clients_tcp_index++;
                 }
                 System.out.println("Client: " + clientSocket.getInetAddress() + " is connected by TCP"
-                        + " & index: " + NewSocket.clients_tcp_index);
+                        + " & index: " + (NewSocket.clients_tcp_index - 1));
             }
 
             this.receiverTcp = new Server_Tcp(clientSocket, receivedMessagesArea);
@@ -103,10 +106,12 @@ public class TcpConnectionAccepter implements Runnable {
             } catch (Exception e) {
                 System.out.println("Exception in ClientHandler: " + e.getMessage());
                 e.printStackTrace();
+                
             } finally {
                 // while문을 빠져나오면 Handler를 종료함
-                stopHandler();
+                
                 stopTCPCheckThread();
+                stopHandler();
             }
         }
 

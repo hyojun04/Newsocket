@@ -1,4 +1,6 @@
 import java.util.Arrays;
+import javax.swing.*;
+import java.awt.*;
 
 public class StartTCPCheckThread implements Runnable {
     private final Server_Tcp serverTcp;
@@ -6,45 +8,9 @@ public class StartTCPCheckThread implements Runnable {
     
     volatile boolean runningFlag = true;
     
-    // 전체 패킷 수와 수신 여부를 추적하는 배열
-    private static final int TOTAL_PACKETS = 61; // 전체 패킷 수 (필요에 맞게 수정)
-    private boolean[] packetReceived = new boolean[TOTAL_PACKETS + 1]; // 인덱스 0은 사용하지 않음
-    private int receivedPacketCount = 0;
-    
     public StartTCPCheckThread(Server_Tcp serverTCP, TcpConnectionAccepter.ClientHandler handler) {
         this.serverTcp = serverTCP;
         this.handler = handler;
-    }
-    
-    public void checkAck() {
-    	String receivedMessage = serverTcp.getReceivedMessage();
-        System.out.println("Received ack Message: " + receivedMessage); //받은 ack 출력
-        
-    	// "_"를 기준으로 split하여 packetNum 추출
-        String[] parts = receivedMessage.split("_");
-        String packetString1 = parts[1].substring(0, 2);
-        String packetString = packetString1.replaceAll("\\D","");
-        
-        
-        System.out.println("part0:"+parts[0]+",parts1:"+packetString);
-        if (parts.length == 2) {
-            int packetNum = Integer.parseInt(packetString);
-            
-            // 유효한 packetNum인지 확인하고 새 패킷이라면 처리
-            if (packetNum > 0 && packetNum <= TOTAL_PACKETS && !packetReceived[packetNum]) {
-                packetReceived[packetNum] = true; // 해당 패킷을 수신한 것으로 표시
-                receivedPacketCount++; // 새 패킷 수신 시 count 증가
-            }
-        }
-        
-        
-        if (receivedPacketCount == TOTAL_PACKETS) {
-           receivedPacketCount = 0;
-           Arrays.fill(packetReceived, false);
-           NewSocket.clients_tcp.set(handler.permanent_id,true); 
-           if(NewSocket.clients_tcp.get(handler.permanent_id) == true)
-              System.out.println("Client Num: "+handler.permanent_id+" Changed index value TRUE");
-        }
     }
 
     @Override
@@ -59,18 +25,57 @@ public class StartTCPCheckThread implements Runnable {
                         e.printStackTrace();
                     }
                 }
-        
-                checkAck();
-   			 
-                // 플래그 초기화
-                serverTcp.resetNewEchoMessageFlag();
-            }
+                //System.out.println("TCP Ack message is got");
+                
+                
+                
+                int totalBits = Server_Tcp.array_index * 8 - Server_Tcp.ignored_bits; // 체크할 총 비트 수
+            	int totalBytes = (totalBits + 7) / 8; // 총 바이트 수, 8로 나눈 나머지가 있으면 +1
 
+            	// 새로운 배열을 만들어서 checkNewMessage의 각 바이트를 왼쪽으로 shift
+            	byte[] shiftedMessage = new byte[totalBytes];
+            	for (int i = 0; i < totalBytes; i++) {
+            	    // 해당 바이트를 왼쪽으로 ignored_bits 만큼 쉬프트
+            	    int index = i < Server_Tcp.array_index ? i : Server_Tcp.array_index - 1; // 마지막 바이트는 인덱스를 조정
+            	    // 왼쪽으로 쉬프트 후 오른쪽 비트는 1로 채움
+            	    shiftedMessage[i] = (byte) ((Server_Tcp.checkNewMessage[index] << Server_Tcp.ignored_bits) |
+            	        ((1 << Server_Tcp.ignored_bits) - 1)); // 오른쪽 비트를 모두 1로 채우기
+            	}
+
+            	// 모든 비트가 1인지 확인
+            	boolean allBitsOne = true;
+            	for (byte b : shiftedMessage) {
+            	    if (b != (byte) 0xFF) { // 만약 한 바이트라도 0xFF가 아니라면
+            	        allBitsOne = false;
+            	        break;
+            	    }
+            	}
+
+            	if (allBitsOne) {
+            	    // 인덱스 번호에 해당하는 client 클래스 배열 호출
+            	    ClientInfo clientinfo = TcpConnectionManager.getClient(handler.permanent_id);
+            	    // 기존 true set에서 임의로 false set 지정
+            	    clientinfo.setNewMsg(true);
+            	    System.out.println("Client Num: " + handler.permanent_id + " Changed index value TRUE");
+            	}
+            	
+            	// 플래그 초기화
+                serverTcp.resetNewEchoMessageFlag();
+                         
             }
+           }
         }
     
     public void stopThread() {
-    	runningFlag = false;
+    	//해당 인덱스를 true로 고정하여 상관없이 프로그램이 작동하도록함
+    	
+    	 //인덱스 번호에 해당하는 client클래스 배열 호출 후 연결상태 false, 새로운 메시지 true 고정
+        ClientInfo clientinfo = TcpConnectionManager.getClient(handler.permanent_id);
+        System.out.println("Client : "+clientinfo.getIp()+" is disconnected");
+        clientinfo.setNewMsg(true);
+    	clientinfo.setConnected(false);
+    	runningFlag = false;    	
     }
+    
     
 }
