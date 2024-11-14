@@ -1,3 +1,7 @@
+import java.util.Arrays;
+import javax.swing.*;
+import java.awt.*;
+
 public class StartTCPCheckThread implements Runnable {
     private final Server_Tcp serverTcp;
     private final TcpConnectionAccepter.ClientHandler handler;
@@ -14,7 +18,6 @@ public class StartTCPCheckThread implements Runnable {
         while (runningFlag) {
             synchronized (serverTcp) {
             	
-            	/*
                 while (!serverTcp.hasNewEchoMessage()) {
                     try {
                         System.out.println("StartTCPCheckThread에서 wait() 중...");
@@ -22,16 +25,41 @@ public class StartTCPCheckThread implements Runnable {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }*/
-                //System.out.println("TCP Ack message is got");
-                
-                //인덱스 번호에 해당하는 client클래스 배열 호출
-                ClientInfo clientinfo = TcpConnectionManager.getClient(handler.permanent_id);
-                //기존 true set에서 임의로 false set지정
-                clientinfo.setNewMsg(false);
-                
+                }
+                //System.out.println("TCP Ack message is got");         
+
+            	// 모든 비트가 1인지 확인
+            	boolean allBitsOne = true;
+            	for (byte b : serverTcp.checkNewMessage) {
+            	    if (b != (byte) 0xFF) { // 만약 한 바이트라도 0xFF가 아니라면
+            	        allBitsOne = false;
+            	        break;
+            	    }
+            	}
             	
-            
+            	if (allBitsOne) {
+            	    // 인덱스 번호에 해당하는 client 클래스 배열 호출
+            		ClientInfo clientinfo = TcpConnectionManager.getClient(handler.permanent_id);
+            		clientinfo.setNewMsg(true);
+            	    System.out.println("Client Num: " + handler.permanent_id + " Changed index value TRUE");
+            		/*
+            		if(!clientinfo.getNewMsg()) {
+            			// 기존 true set에서 임의로 false set 지정
+                	    clientinfo.setNewMsg(true);
+                	    System.out.println("Client Num: " + handler.permanent_id + " Changed index value TRUE");
+            		}*/
+            	    
+            	}
+            	
+            	// 플래그 초기화
+                serverTcp.resetNewEchoMessageFlag();
+                /*
+            	try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/                         
             }
            }
         }

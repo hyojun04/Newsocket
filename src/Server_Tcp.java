@@ -8,15 +8,31 @@ public class Server_Tcp {
     /* 메시지를 받기만 하는 기능 구현 */
     private Socket socket;
     private static final int PORT = 8189;
+    private static final int TOTAL_PACKETS = 61;
     private JTextArea receivedMessagesArea;  // GUI의 receive message 창
+    private StartTCPCheckThread tcpcheck;
     private volatile boolean newAckReceived_tcp = false; // 에코 메시지 수신 여부
     private int receive_message_num = 0;
+    public int array_index =0;
+    public int ignored_bits =0;
 
-    public static byte[] checkNewMessage = new byte[2];
+    public byte[] checkNewMessage;
     // 생성자에서 JTextArea 전달 받음
-    public Server_Tcp(Socket socket, JTextArea receivedMessagesArea) {
+    
+    public static int calculateBits(int total_packets, int mode) {
+    	if (mode == 0) {
+    		//mode가 0이면 byte 배열 인덱스 계산
+    		return (total_packets+7)/8;
+    	}else if(mode ==1) {
+    		return 8-(total_packets % 8);
+    	}else {
+    		throw new IllegalArgumentException("Invalid mode: mode should be 0 or 1");
+    	}
+    }
+    public Server_Tcp(Socket socket, JTextArea receivedMessagesArea,StartTCPCheckThread tcpcheck) {
         this.socket = socket;
         this.receivedMessagesArea = receivedMessagesArea;
+        this.tcpcheck = tcpcheck;
     }
     
     public void reset_message_num() {
@@ -36,6 +52,9 @@ public class Server_Tcp {
         PrintWriter out = null;
         // 데이터 수신을 위한 DataInputStream 사용
         DataInputStream dataInputStream = null;
+        array_index = calculateBits(TOTAL_PACKETS,0);
+        ignored_bits = calculateBits(TOTAL_PACKETS,1);
+        checkNewMessage = new byte[array_index];
         try {
             // BufferedReader를 사용하여 데이터를 송수신
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -64,9 +83,9 @@ public class Server_Tcp {
                 	StringBuilder temp = printByteArrayAsBinary(checkNewMessage);
                 	receive_message_num++;
                     receivedMessagesArea.append("[" + receive_message_num + "] 수신된 메시지 from " + clientIP + ": " +temp +receivedMessage +"\n" );
-                    //newAckReceived_tcp = true; // 에코 메시지를 받았을 경우
-                    //System.out.println("newAckMessage was coming");
-                    //notifyAll();
+                    newAckReceived_tcp = true; // 에코 메시지를 받았을 경우
+                    System.out.println("newAckMessage was coming");
+                    notify(); //notify로 수정해야하나?
                 }
             }
         } finally {
@@ -78,7 +97,8 @@ public class Server_Tcp {
         }
     }
     
-    private StringBuilder printByteArrayAsBinary(byte[] byteArray) {
+
+	private StringBuilder printByteArrayAsBinary(byte[] byteArray) {
     	StringBuilder binaryStringBuilder = new StringBuilder();
         for (byte b : byteArray) {
             // 각 바이트를 0과 1로 변환

@@ -103,7 +103,7 @@ public class NewSocket extends JFrame {
         sendStopButton_UDP = new JButton("Stop UDP Msg");
         stopSetup_Button = new JButton("Stop Connection Setup");
         // TCP 소켓의 IP 입력 필드
-        inputIp = new JTextField("192.168.0.228", 15);
+        inputIp = new JTextField("192.167.11.40", 15);
         inputIp_udpBroad = new JTextField("192.167.11.255",15);//192.168.223.255, 192.168.0.255
        
         
@@ -173,13 +173,13 @@ public class NewSocket extends JFrame {
                 tcp_connection = new TcpSocketConnection();
                 String serverIP = inputIp.getText();
                 tcp_connection.startClient(serverIP);
-                consoleArea.append("Client: "+serverIP+"가 TCP 소켓과 연결되었습니다. \n");
+                consoleArea.append("Client: "+serverIP+"connected with TCP socket. \n");
                 
             }
         });
         //해당 버튼을 눌러야 연결버튼을 통한 소켓연결이 가능함 
         
-     // TCP 소켓연결 버튼 이벤트 처리
+        // TCP 소켓연결 버튼 이벤트 처리
         connectionSetup_Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -219,7 +219,7 @@ public class NewSocket extends JFrame {
             	if (udpTimer_IP != null) {
                     udpTimer_IP.cancel();  // 타이머 중지
                     udpTimer_IP = null;    // 타이머 객체를 null로 설정하여 상태 초기화
-                    consoleArea.append("SETUP이 중지되었습니다.\n");
+                    consoleArea.append("SETUP is stop.\n");
                 }
             }
         });
@@ -243,24 +243,23 @@ public class NewSocket extends JFrame {
                         if (tcpconnectionmanager.checkAllClientsNewMessage()) {
                             
                             consoleArea.append("모든 클라이언트로부터 "+"[" + sentMessageCount + "]의 에코 메시지를 받았으므로 브로드캐스트 중지\n");
+                            tcpconnectionmanager.AllClientsSetFalse(); //에코메시지 수신여부 초기화 
                             sentMessageCount++; // 전송 메시지 카운트 증가
                             
-                            tcpconnectionmanager.AllClientsSetFalse(); //에코메시지 수신여부 초기화 
-
+                            
                             return; // 전송 중지 후 종료
                         }
                        if (sentMessageCount == 0) sentMessageCount++; // 첫 메시지 발송때만 카운트 증가 
                        
                        
-                        sender_udp.startSend(serverIP,sentMessageCount);   // 50ms마다 UDP 메시지 전송
-                        
+                        sender_udp.startSend(serverIP,sentMessageCount,61440);   // 50ms마다 60KB의 UDP 메시지 전송                        
                         // sendMessageArea에 보내는 메시지 추가
                         sentMessageCount_actual++;
-                        sendMessageArea.append("[" + sentMessageCount_actual +"][" +sentMessageCount + "] UDP로 전송된 메시지: 'A' * 1400 bytes\n");
+                        sendMessageArea.append("[" + sentMessageCount_actual +"][" +sentMessageCount + "] message via UDP: 'A' * 61440 bytes\n");
                         
-                        consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
+                        consoleArea.append("UDP message send.\n");
                     }
-                }, 0, 1000); // 1000ms 간격으로 실행
+                }, 0, 100); // 1000ms 간격으로 실행
             }
         });
         // UDP 전송 중지 버튼
@@ -270,7 +269,7 @@ public class NewSocket extends JFrame {
                 if (udpTimer != null) {
                     udpTimer.cancel();  // 타이머 중지
                     udpTimer = null;    // 타이머 객체를 null로 설정하여 상태 초기화
-                    consoleArea.append("UDP 메시지 전송이 중지되었습니다.\n");
+                    consoleArea.append("UDP message transmission has been stooped.\n");
                 }
             }
         });
@@ -279,7 +278,7 @@ public class NewSocket extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 receiver_udp = new ReceiverViewModelUdp(receivedMessagesArea);  // receivedMessagesArea 전달
                 new Thread(() -> receiver_udp.startServer()).start();
-                consoleArea.append("UDP 수신 대기 중...\n");
+                consoleArea.append("UDP waiting...\n");
                 
             }
         });

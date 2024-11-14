@@ -24,15 +24,14 @@ public class TcpConnectionAccepter implements Runnable {
             serverSocket = new ServerSocket(PORT);
             System.out.println("Waiting for connection...");
 
-            // 클라이언트 연결을 대기하면서, 각 연결에 대해 새로운 스레드를 생성
-            // 클라이언트 최대 개수 설정
+            // 클라이언트 연결을 대기하면서, 각 연결에 대해 새로운 스레드를 생성            
             
             while (true) {
                 Socket clientSocket = serverSocket.accept(); // 클라이언트 연결 수락
                 
                 /*UDP broad로 Server쪽 IP 전송하는 매커니즘 추가*/
                 String clientIP = clientSocket.getInetAddress().getHostAddress();
-                System.out.println("Client connected: " + clientIP);
+                System.out.println("Client connected: " + clientIP+"\n");
                 consoleArea.append("Client connected: " + clientIP+"\n");
               
                 // 각 클라이언트에 대해 새로운 핸들러 스레드를 생성
@@ -76,7 +75,8 @@ public class TcpConnectionAccepter implements Runnable {
                         + " & index: " + (NewSocket.clients_tcp_index - 1));
             }
 
-            this.receiverTcp = new Server_Tcp(clientSocket, receivedMessagesArea);
+            this.receiverTcp = new Server_Tcp(clientSocket, receivedMessagesArea,tcpCheckThread);
+            
         }
 
         @Override
