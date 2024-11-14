@@ -22,8 +22,8 @@ public class ReceiverViewModelUdp {
     public static int ignored_bits = 0;
     private static int checkSerial; //받은 UDP 메시지가 몇 번째 메시지인지 저장
     
-    public static byte[] checkNewMessage; // 받은 패킷을 체크하는 배열
-    public static byte[] lastMessage; // 이전 배열(배열에 변화가 생겼을 때만 ack 전송)
+    public byte[] checkNewMessage; // 받은 패킷을 체크하는 배열
+    public byte[] lastMessage; // 이전 배열(배열에 변화가 생겼을 때만 ack 전송)
     
     public static int calculateBits(int total_packets, int mode) { //byte배열을 사용하기 때문에 패킷 수가 8의 배수가 아니면 사용하지 않는 bit가 생김
         if (mode == 0) {
@@ -84,7 +84,14 @@ public class ReceiverViewModelUdp {
         ignored_bits = calculateBits(TOTAL_PACKETS, 1);
         //패킷 수에 맞는 배열 생성
         checkNewMessage = new byte[array_index]; // 테스트하기 위해 미리 지정
-        lastMessage = new byte[array_index];
+        
+        
+        //byte 배열 초기화(무시해야할 비트들을 모두 1로)
+        for(int i=array_index*8 - ignored_bits+1 ; i<= array_index*8; i++){
+        	SetNewMsgBit(i);     	
+        	} 
+        //lastMessage = new byte[array_index];
+        lastMessage = checkNewMessage.clone();
         
         try {
             socket = new DatagramSocket(PORT);
@@ -221,7 +228,7 @@ public class ReceiverViewModelUdp {
             // 해당 바이트 내에서 bitIndex 위치의 비트가 0인지 1인지 확인
             if ((checkNewMessage[byteIndex] & (1 << bitIndex)) == 0) {
                 // 비트가 0이라면 1로 설정
-                checkNewMessage[byteIndex] |= (1 << bitIndex);
+            	checkNewMessage[byteIndex] |= (1 << bitIndex);
                 System.out.println("Set checkNewMessage[" + packet_num + "]:");
                 StartUDPCheckThread.printByteArrayAsBinary(checkNewMessage); //배열 출력    
             } else {
