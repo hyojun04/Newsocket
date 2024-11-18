@@ -18,25 +18,21 @@ public class NewSocket extends JFrame {
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
     private JButton clearSendButton;
-    private Server_Tcp server_tcp;
-    private ReceiverViewModelUdp receiver_udp;
+    
+    public static ReceiverViewModelUdp receiver_udp;
     private TcpSocketConnection tcp_connection;
-    private SenderViewModelUdp sender_udp;
+    
     private JTextField inputIp;
     private JTextField inputIp_udpBroad;
-    private int sentMessageCount = 0;       // 전송 메시지 카운터
+    
     private Timer udpTimer;                 // UDP 전송을 위한 타이머
-    public static ArrayList<Boolean> clients_tcp;   //에코메시지를 받았는 지 확인하는 이진수배열 
-    public static int clients_tcp_index = 0; // 에코메시지의 배열의 인덱스
+    
     
     
     public NewSocket() {
-    	//에코메시지 배열 초기화
-    	clients_tcp = new ArrayList<>();
-    	clients_tcp.add(false);
     	
         // GUI 기본 설정
-        setTitle("P2P UCP Broadcast - Client_v3");
+        setTitle("P2P UCP Broadcast - Client_v4");
         setSize(1300, 600); // 크기를 조금 더 늘려줌
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -74,7 +70,7 @@ public class NewSocket extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 sendMessageArea.setText(""); // 전송 메시지 창의 텍스트 초기화
-                sentMessageCount = 0;        // 전송 메시지 카운터 초기화
+               
             }
         });
 
@@ -103,7 +99,7 @@ public class NewSocket extends JFrame {
         buttonPanel.add(inputIp_udpBroad);
         buttonPanel.add(connection_Button);
         //buttonPanel.add(connectionSetup_Button);
-        buttonPanel.add(sendButton_UDP);
+        //buttonPanel.add(sendButton_UDP);
         buttonPanel.add(receiveButton_UDP);
        // buttonPanel.add(sendStopButton_UDP);
 
@@ -152,7 +148,7 @@ public class NewSocket extends JFrame {
                 TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter();
                 tcp_accepter.startServer();
                 consoleArea.append("TCP 소켓 연결 완료\n");
-                System.out.println("Waiting for TCP");
+                //System.out.println("Waiting for TCP");
             }
         });
 
@@ -163,29 +159,14 @@ public class NewSocket extends JFrame {
                     udpTimer.cancel();  // 타이머 중지 (이전에 동작 중이었다면)
                 }
                 
-                sender_udp = new SenderViewModelUdp();
-                String serverIP = inputIp_udpBroad.getText();
+                
+                
 
                 udpTimer = new Timer();
                 udpTimer.scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
-                    	// 주기적으로 클라이언트 응답 체크
-                        if (checkAllClientsTrue(clients_tcp)) {
-                            udpTimer.cancel();  // 모든 클라이언트가 응답했으므로 타이머 중지
-                            consoleArea.append("모든 클라이언트로부터 에코 메시지를 받았으므로 브로드캐스트 중지\n");
-                            // 수신 상태 플래그 초기화
-                            receiver_udp.resetNewMessageFlag();
-                            server_tcp.resetNewEchoMessageFlag();
-                            return; // 전송 중지 후 종료
-                        }
-                        sender_udp.startClient(serverIP);  // 50ms마다 UDP 메시지 전송
-                        
-                        // sendMessageArea에 보내는 메시지 추가
-                        sentMessageCount++; // 전송 메시지 카운트 증가
-                        sendMessageArea.append("[" + sentMessageCount + "] UDP로 전송된 메시지: 'A' * 30 bytes\n");
-                        
-                        consoleArea.append("UDP로 메시지가 전송되었습니다.\n");
+                    	
                     }
                 }, 0, 2000); // 2s 간격으로 실행
             }
@@ -216,17 +197,7 @@ public class NewSocket extends JFrame {
         });
     }
     
- // 클라이언트 추가 메서드
-    public static void addClient() {
-        clients_tcp.add(false);  // 새로운 클라이언트를 추가 (기본값 false)
-    }
-    
-    public static boolean checkAllClientsTrue(ArrayList<Boolean> booleanlist) {
-    	for (Boolean value: booleanlist) {
-    		if(!value) return false; //하나라도 false가 있으면 false 변
-    	}
-    	return true;
-    }
+ 
     
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {

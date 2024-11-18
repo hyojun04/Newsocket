@@ -22,6 +22,8 @@ public class ReceiverViewModelUdp {
     public static int ignored_bits = 0;
     private static int checkSerial; //받은 UDP 메시지가 몇 번째 메시지인지 저장
     
+    private DatagramSocket socket;
+    
     public byte[] checkNewMessage; // 받은 패킷을 체크하는 배열
     public byte[] lastMessage; // 이전 배열(배열에 변화가 생겼을 때만 ack 전송)
     
@@ -79,7 +81,7 @@ public class ReceiverViewModelUdp {
 
 
     public void startServer() {
-        DatagramSocket socket = null;
+        socket = null;
         array_index = calculateBits(TOTAL_PACKETS, 0);
         ignored_bits = calculateBits(TOTAL_PACKETS, 1);
         //패킷 수에 맞는 배열 생성
@@ -95,7 +97,7 @@ public class ReceiverViewModelUdp {
         
         try {
             socket = new DatagramSocket(PORT);
-            System.out.println("UDP Server started on port " + PORT + ". Waiting for messages...");
+            //System.out.println("UDP Server started on port " + PORT + ". Waiting for messages...");
 
             // 무한 루프로 메시지 계속 수신
             while (true) {
@@ -130,7 +132,7 @@ public class ReceiverViewModelUdp {
                     
                     
                     receivedMessagesArea.append("[" + receive_message_num + "] Received UDP message from " + senderIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");                    
-                    System.out.println("I got Message: " + truncatedMessage);
+                    //System.out.println("I got Message: " + truncatedMessage);
 
                     // 메시지 번호와 패킷 번호 추출
                     int message_num = extractNumberPart(truncatedMessage,MESSAGE_NUM);
@@ -145,34 +147,34 @@ public class ReceiverViewModelUdp {
                                                     
                     } 
                     else {
-                        System.out.println("Received wrong message");
+                        //System.out.println("Received wrong message");
                     }
 
                    
 
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid number format in received message: " + e.getMessage());
+                    //System.out.println("Invalid number format in received message: " + e.getMessage());
                 } catch (SocketException e) {
-                    System.out.println("Socket error occurred: " + e.getMessage());
+                    //System.out.println("Socket error occurred: " + e.getMessage());
                     break; // 소켓에 문제가 생기면 루프를 탈출하여 서버를 중단합니다.
                 } catch (SecurityException e) {
-                    System.out.println("Security exception: " + e.getMessage());
+                    //System.out.println("Security exception: " + e.getMessage());
                 } catch (IllegalArgumentException e) {
-                    System.out.println("Illegal argument: " + e.getMessage());
+                    //System.out.println("Illegal argument: " + e.getMessage());
                 } catch (Exception e) {
-                    System.out.println("Unexpected error while receiving data: " + e.getMessage());
+                    //System.out.println("Unexpected error while receiving data: " + e.getMessage());
                     e.printStackTrace(); // 추가적인 오류 로그를 출력하여 문제를 더 정확히 파악할 수 있게 합니다.
                 }
             }
         } catch (SocketException e) {
-            System.out.println("Failed to bind UDP socket to port " + PORT + ": " + e.getMessage());
+            //System.out.println("Failed to bind UDP socket to port " + PORT + ": " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("Server startup error: " + e.getMessage());
+            //System.out.println("Server startup error: " + e.getMessage());
             e.printStackTrace();
         } finally {
             if (socket != null && !socket.isClosed()) {
                 socket.close();
-                System.out.println("UDP Server socket closed.");
+                //System.out.println("UDP Server socket closed.");
             }
         }
     }
@@ -181,7 +183,7 @@ public class ReceiverViewModelUdp {
         DatagramSocket socket = null;
         try {
             socket = new DatagramSocket(PORT);
-            System.out.println("UDP Server started on port " + PORT + ". Waiting for connect to tcp...");
+            //System.out.println("UDP Server started on port " + PORT + ". Waiting for connect to tcp...");
             
             // 버퍼 생성
             byte[] buffer = new byte[BUFFER_SIZE];
@@ -198,22 +200,22 @@ public class ReceiverViewModelUdp {
 
             // IP 주소가 유효하면 반환, 유효하지 않으면 null 반환
             if (senderIP != null && !senderIP.isEmpty()) {
-                System.out.println("This is serverIP: " + senderIP);
+                //System.out.println("This is serverIP: " + senderIP);
                 return senderIP;
             } else {
-                System.out.println("No server IP");
+                //System.out.println("No server IP");
                 return null;
             }
         } catch (SocketException e) {
-            System.out.println("Failed to bind UDP socket to port " + PORT + ": " + e.getMessage());
+            //System.out.println("Failed to bind UDP socket to port " + PORT + ": " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("Server startup error: " + e.getMessage());
+            //System.out.println("Server startup error: " + e.getMessage());
             e.printStackTrace();
         } finally {
             // 메시지를 수신한 후 소켓을 닫아 더 이상 메시지를 받지 않도록 함.
             if (socket != null && !socket.isClosed()) {
                 socket.close();
-                System.out.println("UDP Server socket closed.");
+                //System.out.println("UDP Server socket closed.");
             }
         }
         return null; // 메시지를 수신하지 못했거나 오류 발생 시 null 반환
@@ -229,13 +231,18 @@ public class ReceiverViewModelUdp {
             if ((checkNewMessage[byteIndex] & (1 << bitIndex)) == 0) {
                 // 비트가 0이라면 1로 설정
             	checkNewMessage[byteIndex] |= (1 << bitIndex);
-                System.out.println("Set checkNewMessage[" + packet_num + "]:");
+                //System.out.println("Set checkNewMessage[" + packet_num + "]:");
                 StartUDPCheckThread.printByteArrayAsBinary(checkNewMessage); //배열 출력    
             } else {
                 // 이미 비트가 1인 경우
-                System.out.println("checkNewMessage[" + packet_num + "] is already set to 1.");
+                //System.out.println("checkNewMessage[" + packet_num + "] is already set to 1.");
               }
            }
+    
+    //Server에서 Reset 요청이 올 때
+    public void resetUDPreceiving() {
+    	socket.close();
+    }
   }            
         
 

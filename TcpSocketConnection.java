@@ -14,7 +14,8 @@ public class TcpSocketConnection {
             client = new Client_Tcp(socket);
             
             
-            System.out.println("Client: " + serverIP + " is connected by TCP" + " & index: " + NewSocket.clients_tcp_index);
+            System.out.println("Server: " + serverIP + " is connected by TCP");
+            System.out.println("My IP: " + socket.getLocalAddress());
             
             
             
