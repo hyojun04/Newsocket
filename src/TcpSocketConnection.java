@@ -14,23 +14,7 @@ public class TcpSocketConnection {
             sender = new Client_Tcp(socket);
             //receiver = new Server_Tcp(socket); // Server_Tcp 인스턴스 생성
             /* 여러 클라이언트를 받으려면 for루프를 통해서 소켓을 생성 */
-            permanent_id = NewSocket.clients_tcp_index;
-            System.out.println("Client: " + serverIP + " is connected by TCP" + " & index: " + NewSocket.clients_tcp_index);
-            if(NewSocket.clients_tcp_index == 0)
-			{	
-				NewSocket.clients_tcp.set(NewSocket.clients_tcp_index, false);  // 초기 인덱스는 false로 초기
-				permanent_id = NewSocket.clients_tcp_index;
-				System.out.println("connected by TCP"+ " & index: " + NewSocket.clients_tcp_index);
-				NewSocket.clients_tcp_index++;
-			}
-			else { //index가 0이 아니면 배열을 늘림 
-				NewSocket.clients_tcp.add(NewSocket.clients_tcp_index, false);  // 다음 인덱스는 false로 초기
-				permanent_id = NewSocket.clients_tcp_index;
-				System.out.println("connected by TCP"+ " & index: " + NewSocket.clients_tcp_index);
-				NewSocket.clients_tcp_index++; // index값 = client수 + 1 
-				
-				
-			}
+            
             
             
         } catch (IOException e) {
