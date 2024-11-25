@@ -10,7 +10,8 @@ import javax.swing.JTextArea;
 public class StartUDPCheckThread implements Runnable {
     private final ReceiverViewModelUdp receiver_udp;
     private final TcpSocketConnection tcpConnection;
-    private JLabel imageLabel; // ÀÌ¹ÌÁö Ç¥½Ã¿ë JLabel
+    private JLabel imageLabel; // ì´ë¯¸ì§€ í‘œì‹œìš© JLabel
+
 
     public StartUDPCheckThread(ReceiverViewModelUdp receiver_udp, TcpSocketConnection tcpConnection, JLabel imageLabel) {
         this.receiver_udp = receiver_udp;
@@ -22,96 +23,117 @@ public class StartUDPCheckThread implements Runnable {
     @Override
     public void run() {
         while (true) {
-           
-        	try {
+            try {
+                if (!Arrays.equals(receiver_udp.checkNewMessage, receiver_udp.lastMessage)) {
+                    // ACK ì „ì†¡
+                    tcpConnection.sendAckMessage(receiver_udp.checkNewMessage);
+                    printByteArrayAsBinary(receiver_udp.checkNewMessage);
 
-                if(!Arrays.equals(receiver_udp.checkNewMessage, receiver_udp.lastMessage)) { // checkNewMessage ¹è¿­¿¡ º¯È­°¡ »ı°åÀ» ¶§¸¸ ack Àü¼Û
-                	
-                	
-                	//byte¹è¿­¸¸ Ack¸Ş½ÃÁö·Î º¸³»°ÔµÈ´Ù. sendAckMessage´Â ÀçÁ¤ÀÇµÇ¾îÀÖÀ½
-                	tcpConnection.sendAckMessage(receiver_udp.checkNewMessage);
-                	            
-                	printByteArrayAsBinary(receiver_udp.checkNewMessage); // º¸³½ ack³»¿ë Ãâ·Â           	
+                    // ëª¨ë“  íŒ¨í‚·ì´ ìˆ˜ì‹ ë˜ì—ˆëŠ”ì§€ í™•ì¸
+                    boolean allBitsOne = true;
+                    for (byte b : receiver_udp.checkNewMessage) {
+                        if (b != (byte) 0xFF) {
+                            allBitsOne = false;
+                            break;
+                        }
+                    }
 
-                	// ¹è¿­ÀÇ ¸ğµç ºñÆ®°¡ 1ÀÎÁö È®ÀÎ
-                	boolean allBitsOne = true;
-                	for (byte b : receiver_udp.checkNewMessage) {
-                	    if (b != (byte) 0xFF) { // ¸¸¾à ÇÑ ¹ÙÀÌÆ®¶óµµ 0xFF°¡ ¾Æ´Ï¶ó¸é
-                	        allBitsOne = false;
-                	        break;
-                	    }
-                	}
+                    // ëª¨ë“  íŒ¨í‚·ì´ ìˆ˜ì‹ ëœ ê²½ìš°
+                    if (allBitsOne) {
+                        System.out.println("All packets received successfully");
 
-                	if (allBitsOne) {
-                	    //System.out.println("all packet received");
-                		convertAndDisplayImage(receiver_udp.imageData); // imageData´Â ¼ö½ÅµÈ ÆĞÅ¶À» Á¶¸³ÇÑ ¹ÙÀÌÆ® ¹è¿­
-                	    Arrays.fill(receiver_udp.checkNewMessage, (byte) 0); // checkNewMessage ¹è¿­À» 0À¸·Î ÃÊ±âÈ­
-                	    //byte ¹è¿­ ÃÊ±âÈ­(¹«½ÃÇØ¾ßÇÒ ºñÆ®µéÀ» ¸ğµÎ 1·Î)
-                        for(int i=ReceiverViewModelUdp.array_index*8 - ReceiverViewModelUdp.ignored_bits+1 ; i<= ReceiverViewModelUdp.array_index*8; i++){
-                        	receiver_udp.SetNewMsgBit(i);     	
-                        	}
-                       
-                        //receiver_udp.lastMessage = receiver_udp.checkNewMessage.clone();
-                	    ReceiverViewModelUdp.receivedMessageNum++; // ´ÙÀ½ ¸Ş½ÃÁö¸¦ ¹ŞÀ» ÁØºñ
-                	    //System.out.println("receivedMessageNum: " + ReceiverViewModelUdp.receivedMessageNum);
-                	}
-                	
-                	// ¹è¿­ÀÇ ³»¿ëÀ» º¹»çÇÏ¿© lastMessage¿¡ ÀúÀå
-                	receiver_udp.lastMessage = Arrays.copyOf(receiver_udp.checkNewMessage, receiver_udp.checkNewMessage.length);
-               
-               
-                	// ÇÃ·¡±× ÃÊ±âÈ­
-                	receiver_udp.resetNewMessageFlag();
-                	
-               
+                        // ëª¨ë“  í–‰ì´ ìœ íš¨í•œì§€ í™•ì¸í•˜ê³  ì´ë¯¸ì§€ ì¡°ë¦½ ì‹œì‘
+                        boolean allRowsValid = true;
+                        for (int i = 0; i < receiver_udp.imageData.length; i++) {
+                            if (receiver_udp.imageData[i] == null) {
+                                allRowsValid = false;
+                                System.err.println("Missing data for row: " + i);
+                            }
+                        }
+
+                        // ëª¨ë“  í–‰ì´ ìœ íš¨í•  ë•Œë§Œ ì´ë¯¸ì§€ ë³€í™˜ ì‹œë„
+                        if (allRowsValid) {
+                            convertAndDisplayImage(receiver_udp.imageData);
+                        } else {
+                            System.err.println("Cannot convert image: incomplete data");
+                        }
+
+                        // ë°°ì—´ ì´ˆê¸°í™”
+                        Arrays.fill(receiver_udp.checkNewMessage, (byte) 0);
+                        for (int i = ReceiverViewModelUdp.array_index * 8 - ReceiverViewModelUdp.ignored_bits + 1; i <= ReceiverViewModelUdp.array_index * 8; i++) {
+                            receiver_udp.SetNewMsgBit(i);
+                        }
+
+                        ReceiverViewModelUdp.receivedMessageNum++;
+                    }
+
+                    // ë§ˆì§€ë§‰ ë©”ì‹œì§€ ë³µì‚¬
+                    receiver_udp.lastMessage = Arrays.copyOf(receiver_udp.checkNewMessage, receiver_udp.checkNewMessage.length);
+                    receiver_udp.resetNewMessageFlag();
                 }
-               
-                // ¼³Á¤ÇÑ ½Ã°£ µ¿¾È ´ë±â
+
+                // ì„¤ì •í•œ ì‹œê°„ ë™ì•ˆ ëŒ€ê¸°
                 long interval = 100;
-               
                 Thread.sleep(interval);
             } catch (InterruptedException e) {
-                // ½º·¹µå°¡ Áß´ÜµÇ¾úÀ» ¶§ ¿¹¿Ü Ã³¸®
-                //System.out.println("Thread was interrupted");
+                System.out.println("Thread was interrupted");
                 break;
             }
         }
     }
-    public void convertAndDisplayImage(byte[][] imageData2D) {
-        // ÀÌÂ÷¿ø ¹è¿­À» 1Â÷¿ø ¹è¿­·Î º¯È¯
-        int rows = imageData2D.length;
-        int cols = imageData2D[0].length;
-        byte[] imageData1D = new byte[rows * cols];
 
+    public void convertAndDisplayImage(byte[][] imageData2D) {
+        if (imageData2D == null || imageData2D.length == 0) {
+            System.err.println("Invalid image data: no data to convert.");
+            return;
+        }
+
+        int rows = imageData2D.length;
+        final int FIXED_DATA_SIZE = 1014; // ì†¡ì‹  ì¸¡ì—ì„œ ê³ ì •í•œ ë°ì´í„° í¬ê¸°
+        int totalLength = rows * FIXED_DATA_SIZE;
+        byte[] imageData1D = new byte[totalLength];
         int index = 0;
+
         for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                imageData1D[index++] = imageData2D[i][j];
+            if (imageData2D[i] != null) {
+                // í–‰ì˜ ê¸¸ì´ê°€ ê³ ì • í¬ê¸°ë³´ë‹¤ ì‘ì„ ìˆ˜ ìˆìœ¼ë¯€ë¡œ ìµœì†Œê°’ ì‚¬ìš©
+                int lengthToCopy = Math.min(imageData2D[i].length, FIXED_DATA_SIZE);
+                System.arraycopy(imageData2D[i], 0, imageData1D, index, lengthToCopy);
+                index += FIXED_DATA_SIZE; // ê³ ì • í¬ê¸°ë§Œí¼ ì¸ë±ìŠ¤ ì¦ê°€
+            } else {
+                System.err.println("Row " + i + " is null. Filling with zeros.");
+                Arrays.fill(imageData1D, index, index + FIXED_DATA_SIZE, (byte) 0);
+                index += FIXED_DATA_SIZE;
             }
         }
 
-        // º¯È¯µÈ 1Â÷¿ø ¹è¿­À» displayImage ¸Ş¼­µå¿¡ Àü´Ş
+        // ì´ë¯¸ì§€ ë””ìŠ¤í”Œë ˆì´
         displayImage(imageData1D);
     }
-   
+
+
     public void displayImage(byte[] imageData) {
         try {
-            // ÀÌ¹ÌÁö µ¥ÀÌÅÍ¸¦ BufferedImage·Î º¯È¯
+            // ì´ë¯¸ì§€ ë°ì´í„°ë¥¼ BufferedImageë¡œ ë³€í™˜
             ByteArrayInputStream bais = new ByteArrayInputStream(imageData);
             BufferedImage image = ImageIO.read(bais);
 
-            // ÀÌ¹ÌÁö¸¦ JLabel¿¡ ¼³Á¤
-            imageLabel.setIcon(new ImageIcon(image));
+            if (image != null) {
+                // ì´ë¯¸ì§€ë¥¼ JLabelì— ì„¤ì •
+                imageLabel.setIcon(new ImageIcon(image));
+            } else {
+                System.err.println("Failed to decode image. The data may be corrupted.");
+            }
         } catch (IOException e) {
-            //¿À·ù¹ß»ı
             e.printStackTrace();
         }
     }
+
     public static void printByteArrayAsBinary(byte[] byteArray) {
         for (byte b : byteArray) {
-            // °¢ ¹ÙÀÌÆ®¸¦ 0°ú 1·Î º¯È¯
+            // ê° ë°”ì´íŠ¸ë¥¼ 0ê³¼ 1ë¡œ ë³€í™˜
             String binaryString = String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
-            //System.out.println(binaryString); // º¯È¯µÈ ÀÌÁø¼ö Ãâ·Â
+            //System.out.println(binaryString); // ë³€í™˜ëœ ì´ì§„ìˆ˜ ì¶œë ¥
         }
     }
 }

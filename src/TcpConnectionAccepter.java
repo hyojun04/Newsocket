@@ -3,7 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class TcpConnectionAccepter { //Server
-    private static final int PORT = 8189; // ¼ö½ÅÇÒ Æ÷Æ®
+    private static final int PORT = 8189; // ìˆ˜ì‹ í•  í¬íŠ¸
     private ServerSocket serverSocket;
     
     public void startServer() {
@@ -11,7 +11,7 @@ public class TcpConnectionAccepter { //Server
             serverSocket = new ServerSocket(PORT);
             System.out.println("Waiting for connection...");
           
-                Socket clientSocket = serverSocket.accept(); // Å¬¶óÀÌ¾ğÆ® ¿¬°á ¼ö¶ô
+                Socket clientSocket = serverSocket.accept(); // í´ë¼ì´ì–¸íŠ¸ ì—°ê²° ìˆ˜ë½
                 System.out.println("Client connected: " + clientSocket.getInetAddress().getHostAddress());
                 
                 

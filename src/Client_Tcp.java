@@ -8,23 +8,23 @@ public class Client_Tcp {
     private Socket socket;
     private PrintWriter out = null;
     private DataOutputStream dataOutputStream = null;
-    private BufferedReader in = null; // ¼ö½Å¿ë BufferedReader Ãß°¡
-    private DataInputStream dataInputStream = null; // ¹ÙÀÌÆ® ¼ö½Å¿ë DataInputStream Ãß°¡
+    private BufferedReader in = null; // ìˆ˜ì‹ ìš© BufferedReader ì¶”ê°€
+    private DataInputStream dataInputStream = null; // ë°”ì´íŠ¸ ìˆ˜ì‹ ìš© DataInputStream ì¶”ê°€
    
-    // SocketÀ» ÆÄ¶ó¹ÌÅÍ·Î ¹Ş´Â »ı¼ºÀÚ
+    // Socketì„ íŒŒë¼ë¯¸í„°ë¡œ ë°›ëŠ” ìƒì„±ì
     public Client_Tcp(Socket socket) {
         this.socket = socket;
         try {
-            // PrintWriter ÃÊ±âÈ­
+            // PrintWriter ì´ˆê¸°í™”
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-            // byteArray¸¦ À§ÇØ Ãß°¡ÇÔ
+            // byteArrayë¥¼ ìœ„í•´ ì¶”ê°€í•¨
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
            
-            /*ResetÀ» À§ÇÑ tcp ¼ö½Å*/
-            // ¼ö½Å ½ºÆ®¸² ÃÊ±âÈ­
+            /*Resetì„ ìœ„í•œ tcp ìˆ˜ì‹ */
+            // ìˆ˜ì‹  ìŠ¤íŠ¸ë¦¼ ì´ˆê¸°í™”
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             dataInputStream = new DataInputStream(socket.getInputStream());
-            // ¼ö½Å ½º·¹µå ½ÃÀÛ
+            // ìˆ˜ì‹  ìŠ¤ë ˆë“œ ì‹œì‘
             startResetReceiving();
            
         } catch (IOException e) {
@@ -32,13 +32,13 @@ public class Client_Tcp {
         }
     }
 
-    // TCP ¸Ş½ÃÁö¸¦ Àü¼ÛÇÏ´Â ¸Ş¼­µå
+    // TCP ë©”ì‹œì§€ë¥¼ ì „ì†¡í•˜ëŠ” ë©”ì„œë“œ
     public void sendMessage_tcp(String message) {
         try {
-            // ÇöÀç ½Ã°£À» hh:mm:ss.SSS Çü½ÄÀ¸·Î °¡Á®¿À±â
+            // í˜„ì¬ ì‹œê°„ì„ hh:mm:ss.SSS í˜•ì‹ìœ¼ë¡œ ê°€ì ¸ì˜¤ê¸°
             String timeStamp = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 
-            // ¸Ş½ÃÁö Àü¼Û + Å¸ÀÓ½ºÅÆÇÁ Ãß°¡
+            // ë©”ì‹œì§€ ì „ì†¡ + íƒ€ì„ìŠ¤íƒ¬í”„ ì¶”ê°€
             out.println(message + " From Window " + "[" + timeStamp + "]");
             //System.out.println(message + " Ack message gets sent");
 
@@ -46,18 +46,18 @@ public class Client_Tcp {
             e.printStackTrace();
         }
     }
- // byte¹è¿­ÀÇ TCP check ¸Ş½ÃÁö¸¦ Àü¼ÛÇÏ´Â ¸Ş¼­µå
+ // byteë°°ì—´ì˜ TCP check ë©”ì‹œì§€ë¥¼ ì „ì†¡í•˜ëŠ” ë©”ì„œë“œ
     public void sendMessage_tcp(byte[] byteArray) {
         try {
-            // ÇöÀç ½Ã°£À» hh:mm:ss.SSS Çü½ÄÀ¸·Î °¡Á®¿À±â
+            // í˜„ì¬ ì‹œê°„ì„ hh:mm:ss.SSS í˜•ì‹ìœ¼ë¡œ ê°€ì ¸ì˜¤ê¸°
             String timeStamp = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
 
-            // ¸Ş½ÃÁö Àü¼Û + Å¸ÀÓ½ºÅÆÇÁ Ãß°¡
-            // byte ¹è¿­ÀÇ ±æÀÌ¸¦ ¸ÕÀú Àü¼Û
+            // ë©”ì‹œì§€ ì „ì†¡ + íƒ€ì„ìŠ¤íƒ¬í”„ ì¶”ê°€
+            // byte ë°°ì—´ì˜ ê¸¸ì´ë¥¼ ë¨¼ì € ì „ì†¡
             dataOutputStream.writeInt(byteArray.length);
-            // byte ¹è¿­ Àü¼Û
+            // byte ë°°ì—´ ì „ì†¡
             dataOutputStream.write(byteArray);
-            // String ¸Ş½ÃÁö Àü¼Û
+            // String ë©”ì‹œì§€ ì „ì†¡
             dataOutputStream.writeUTF(" From Window " + "[" + timeStamp + "]");
            
             //System.out.println(byteArray + " Ack message gets sent");
@@ -67,7 +67,7 @@ public class Client_Tcp {
         }
     }
 
-    // ¼ÒÄÏ Á¾·á ¸Ş¼­µå
+    // ì†Œì¼“ ì¢…ë£Œ ë©”ì„œë“œ
     public void closeSocket() {
         try {
             if (out != null) {
@@ -82,16 +82,16 @@ public class Client_Tcp {
         }
     }
    
- // ¸Ş½ÃÁö ¼ö½ÅÀ» À§ÇÑ ½º·¹µå ½ÃÀÛ ¸Ş¼­µå
+ // ë©”ì‹œì§€ ìˆ˜ì‹ ì„ ìœ„í•œ ìŠ¤ë ˆë“œ ì‹œì‘ ë©”ì„œë“œ
     private void startResetReceiving() {
         Thread receiveResetThread = new Thread(() -> {
             try {
                 String message;
-                while ((message = in.readLine()) != null) { // EOF¸¦ È®ÀÎÇÏ¸ç ¼ö½Å
+                while ((message = in.readLine()) != null) { // EOFë¥¼ í™•ì¸í•˜ë©° ìˆ˜ì‹ 
                     //System.out.println("Received message: " + message);
                 }
                 //System.out.println("Server closed the connection.");
-                //Message num ÃÊ±âÈ­
+                //Message num ì´ˆê¸°í™”
                 ReceiverViewModelUdp.receivedMessageNum =1;
                 NewSocket.receiver_udp.resetUDPreceiving();
                 NewSocket.receiver_udp = null;

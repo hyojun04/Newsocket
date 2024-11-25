@@ -18,7 +18,7 @@ public class NewSocket extends JFrame {
     private JButton receiveButton_UDP;
     private JButton clearReceiveButton;
     private JButton clearSendButton;
-    private JLabel imageLabel; // ÀÌ¹ÌÁö Ç¥½Ã¿ë JLabel
+    private JLabel imageLabel; // ì´ë¯¸ì§€ í‘œì‹œìš© JLabel
    
    
     public static ReceiverViewModelUdp receiver_udp;
@@ -27,19 +27,19 @@ public class NewSocket extends JFrame {
     private JTextField inputIp;
     private JTextField inputIp_udpBroad;
    
-    private Timer udpTimer;                 // UDP Àü¼ÛÀ» À§ÇÑ Å¸ÀÌ¸Ó
+    private Timer udpTimer;                 // UDP ì „ì†¡ì„ ìœ„í•œ íƒ€ì´ë¨¸
    
    
    
     public NewSocket() {
     	
-        // GUI ±âº» ¼³Á¤
+        // GUI ê¸°ë³¸ ì„¤ì •
         setTitle("P2P UCP Broadcast - Client_v4");
-        setSize(1300, 600); // Å©±â¸¦ Á¶±İ ´õ ´Ã·ÁÁÜ
+        setSize(1300, 600); // í¬ê¸°ë¥¼ ì¡°ê¸ˆ ë” ëŠ˜ë ¤ì¤Œ
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // ¼ö½Å ¸Ş½ÃÁö ¿µ¿ª (¸Ç À§¿¡ À§Ä¡)
+        // ìˆ˜ì‹  ë©”ì‹œì§€ ì˜ì—­ (ë§¨ ìœ„ì— ìœ„ì¹˜)
         receivedMessagesArea = new JTextArea();
         receivedMessagesArea.setEditable(false);
         receivedMessagesArea.setLineWrap(true);
@@ -47,36 +47,36 @@ public class NewSocket extends JFrame {
         JScrollPane receivedScrollPane = new JScrollPane(receivedMessagesArea);
         receivedScrollPane.setBorder(BorderFactory.createTitledBorder("Received Messages"));
 
-        // Clear ¹öÆ° Ãß°¡ (¼ö½Å ¸Ş½ÃÁö)
+        // Clear ë²„íŠ¼ ì¶”ê°€ (ìˆ˜ì‹  ë©”ì‹œì§€)
         clearReceiveButton = new JButton("Clear Received Messages");
         clearReceiveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                receivedMessagesArea.setText(""); // ¼ö½Å ¸Ş½ÃÁö Ã¢ÀÇ ÅØ½ºÆ® ÃÊ±âÈ­
+                receivedMessagesArea.setText(""); // ìˆ˜ì‹  ë©”ì‹œì§€ ì°½ì˜ í…ìŠ¤íŠ¸ ì´ˆê¸°í™”
                 if (receiver_udp != null) {
-                    receiver_udp.reset_message_num(); // ¼ö½Å ¸Ş½ÃÁö Ä«¿îÅÍ ÃÊ±âÈ­
+                    receiver_udp.reset_message_num(); // ìˆ˜ì‹  ë©”ì‹œì§€ ì¹´ìš´í„° ì´ˆê¸°í™”
                 }
             }
         });
 
-        // Àü¼Û ¸Ş½ÃÁö ÀÔ·Â ¿µ¿ª (Áß°£¿¡ À§Ä¡)
+        // ì „ì†¡ ë©”ì‹œì§€ ì…ë ¥ ì˜ì—­ (ì¤‘ê°„ì— ìœ„ì¹˜)
         sendMessageArea = new JTextArea();
         sendMessageArea.setLineWrap(true);
         sendMessageArea.setWrapStyleWord(true);
         JScrollPane sendScrollPane = new JScrollPane(sendMessageArea);
         sendScrollPane.setBorder(BorderFactory.createTitledBorder("Send Message"));
 
-        // Clear ¹öÆ° Ãß°¡ (Àü¼Û ¸Ş½ÃÁö)
+        // Clear ë²„íŠ¼ ì¶”ê°€ (ì „ì†¡ ë©”ì‹œì§€)
         clearSendButton = new JButton("Clear Send Messages");
         clearSendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sendMessageArea.setText(""); // Àü¼Û ¸Ş½ÃÁö Ã¢ÀÇ ÅØ½ºÆ® ÃÊ±âÈ­
+                sendMessageArea.setText(""); // ì „ì†¡ ë©”ì‹œì§€ ì°½ì˜ í…ìŠ¤íŠ¸ ì´ˆê¸°í™”
                
             }
         });
 
-        // ÄÜ¼Ö ¿µ¿ª (¸Ç ¾Æ·¡¿¡ À§Ä¡)
+        // ì½˜ì†” ì˜ì—­ (ë§¨ ì•„ë˜ì— ìœ„ì¹˜)
         consoleArea = new JTextArea();
         consoleArea.setEditable(false);
         consoleArea.setLineWrap(true);
@@ -84,21 +84,21 @@ public class NewSocket extends JFrame {
         JScrollPane consoleScrollPane = new JScrollPane(consoleArea);
         consoleScrollPane.setBorder(BorderFactory.createTitledBorder("Console"));
        
-        // ÀÌ¹ÌÁö¸¦ Ç¥½ÃÇÒ JLabel ÃÊ±âÈ­
+        // ì´ë¯¸ì§€ë¥¼ í‘œì‹œí•  JLabel ì´ˆê¸°í™”
         imageLabel = new JLabel();
-        imageLabel.setHorizontalAlignment(JLabel.CENTER); // ÀÌ¹ÌÁö °¡¿îµ¥ Á¤·Ä
+        imageLabel.setHorizontalAlignment(JLabel.CENTER); // ì´ë¯¸ì§€ ê°€ìš´ë° ì •ë ¬
         imageLabel.setBorder(BorderFactory.createTitledBorder("Received Image"));
 
-        // ¹öÆ° »ı¼º
+        // ë²„íŠ¼ ìƒì„±
         connection_Button = new JButton("Connection");
         sendButton_UDP = new JButton("Send UDP Message");
         connectionSetup_Button = new JButton("Connection Setup");
         receiveButton_UDP = new JButton("Wait for UDP");
         sendStopButton_UDP = new JButton("Stop UDP Msg");
-        // IP ÀÔ·Â ÇÊµå
+        // IP ì…ë ¥ í•„ë“œ
         inputIp = new JTextField("192.167.11.36", 15); //192.168.0.228
         inputIp_udpBroad = new JTextField("192.168.195.255",15);
-        // ¹öÆ°°ú ÅØ½ºÆ® ÇÊµå¸¦ ´ãÀ» ÆĞ³Î
+        // ë²„íŠ¼ê³¼ í…ìŠ¤íŠ¸ í•„ë“œë¥¼ ë‹´ì„ íŒ¨ë„
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(new JLabel("Client IP:"));
         buttonPanel.add(inputIp);
@@ -110,36 +110,36 @@ public class NewSocket extends JFrame {
         buttonPanel.add(receiveButton_UDP);
        // buttonPanel.add(sendStopButton_UDP);
 
-        // ¸ŞÀÎ ·¹ÀÌ¾Æ¿ô ¼³Á¤
+        // ë©”ì¸ ë ˆì´ì•„ì›ƒ ì„¤ì •
         setLayout(new BorderLayout());
 
-        // ¼ö½Å ¸Ş½ÃÁö + Clear ¹öÆ°À» À§ÇÑ ÆĞ³Î
+        // ìˆ˜ì‹  ë©”ì‹œì§€ + Clear ë²„íŠ¼ì„ ìœ„í•œ íŒ¨ë„
         JPanel receivedPanel = new JPanel(new BorderLayout());
         receivedPanel.add(receivedScrollPane, BorderLayout.CENTER);
         receivedPanel.add(clearReceiveButton, BorderLayout.SOUTH);      
 
-        // ÀÌ¹ÌÁö Ç¥½Ã¿ë ÆĞ³Î Ãß°¡
+        // ì´ë¯¸ì§€ í‘œì‹œìš© íŒ¨ë„ ì¶”ê°€
         JPanel imagePanel = new JPanel(new BorderLayout());
         imagePanel.add(imageLabel, BorderLayout.CENTER);
 
-        // Àü¼Û ¸Ş½ÃÁö + Clear ¹öÆ°À» À§ÇÑ ÆĞ³Î
+        // ì „ì†¡ ë©”ì‹œì§€ + Clear ë²„íŠ¼ì„ ìœ„í•œ íŒ¨ë„
         JPanel sendPanel = new JPanel(new BorderLayout());
         sendPanel.add(sendScrollPane, BorderLayout.CENTER);
         sendPanel.add(clearSendButton, BorderLayout.SOUTH);
 
-        // Center Panel: ¸ğµç Ã¢À» µ¿ÀÏÇÑ Å©±â·Î ¼³Á¤ÇÏ±â À§ÇÑ GridLayout
+        // Center Panel: ëª¨ë“  ì°½ì„ ë™ì¼í•œ í¬ê¸°ë¡œ ì„¤ì •í•˜ê¸° ìœ„í•œ GridLayout
         JPanel centerPanel = new JPanel(new GridLayout(4, 1));  // 4 rows, 1 column
-        centerPanel.add(receivedPanel);  // ¼ö½Å ¸Ş½ÃÁö Ã¢ + Clear ¹öÆ°
-        centerPanel.add(imagePanel);        // ÀÌ¹ÌÁö ¿µ¿ª Ãß°¡
-        centerPanel.add(sendPanel);      // Àü¼Û ¸Ş½ÃÁö Ã¢ + Clear ¹öÆ°
-        centerPanel.add(consoleScrollPane);   // ÄÜ¼Ö Ã¢
+        centerPanel.add(receivedPanel);  // ìˆ˜ì‹  ë©”ì‹œì§€ ì°½ + Clear ë²„íŠ¼
+        centerPanel.add(imagePanel);        // ì´ë¯¸ì§€ ì˜ì—­ ì¶”ê°€
+        centerPanel.add(sendPanel);      // ì „ì†¡ ë©”ì‹œì§€ ì°½ + Clear ë²„íŠ¼
+        centerPanel.add(consoleScrollPane);   // ì½˜ì†” ì°½
 
-        add(centerPanel, BorderLayout.CENTER);      // Áß¾Ó¿¡ 3°³ÀÇ Ã¢À» °°Àº Å©±â·Î ¹èÄ¡
-        add(buttonPanel, BorderLayout.SOUTH);        // ÇÏ´Ü¿¡ ¹öÆ° ÆĞ³Î ¹èÄ¡
+        add(centerPanel, BorderLayout.CENTER);      // ì¤‘ì•™ì— 3ê°œì˜ ì°½ì„ ê°™ì€ í¬ê¸°ë¡œ ë°°ì¹˜
+        add(buttonPanel, BorderLayout.SOUTH);        // í•˜ë‹¨ì— ë²„íŠ¼ íŒ¨ë„ ë°°ì¹˜
        
        
        
-        // ¿¬°á ¹öÆ° ÀÌº¥Æ® Ã³¸®
+        // ì—°ê²° ë²„íŠ¼ ì´ë²¤íŠ¸ ì²˜ë¦¬
         connection_Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -147,19 +147,19 @@ public class NewSocket extends JFrame {
                 receiver_udp = new ReceiverViewModelUdp(receivedMessagesArea);
                 String serverIP = receiver_udp.startConnect_to_tcp();
                 tcp_connection.startClient(serverIP);
-                consoleArea.append("Client: "+serverIP+"°¡ TCP ¼ÒÄÏ°ú ¿¬°áµÇ¾ú½À´Ï´Ù. \n");
+                consoleArea.append("Client: "+serverIP+"ê°€ TCP ì†Œì¼“ê³¼ ì—°ê²°ë˜ì—ˆìŠµë‹ˆë‹¤. \n");
                
             }
         });
-        //ÇØ´ç ¹öÆ°À» ´­·¯¾ß ¿¬°á¹öÆ°À» ÅëÇÑ ¼ÒÄÏ¿¬°áÀÌ °¡´ÉÇÔ
-     // TCP ¼ö½Å ¹öÆ° ÀÌº¥Æ® Ã³¸®
+        //í•´ë‹¹ ë²„íŠ¼ì„ ëˆŒëŸ¬ì•¼ ì—°ê²°ë²„íŠ¼ì„ í†µí•œ ì†Œì¼“ì—°ê²°ì´ ê°€ëŠ¥í•¨
+     // TCP ìˆ˜ì‹  ë²„íŠ¼ ì´ë²¤íŠ¸ ì²˜ë¦¬
         connectionSetup_Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //server_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModelÀÇ ÀÎ½ºÅÏ½º¸¦ ¹Ş¾Æ¿È
+                //server_tcp = tcp_connection.receiverViewModel_tcp(); //ReceiverViewModelì˜ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ë°›ì•„ì˜´
                 TcpConnectionAccepter tcp_accepter = new TcpConnectionAccepter();
                 tcp_accepter.startServer();
-                consoleArea.append("TCP ¼ÒÄÏ ¿¬°á ¿Ï·á\n");
+                consoleArea.append("TCP ì†Œì¼“ ì—°ê²° ì™„ë£Œ\n");
                 //System.out.println("Waiting for TCP");
             }
         });
@@ -168,7 +168,7 @@ public class NewSocket extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (udpTimer != null) {
-                    udpTimer.cancel();  // Å¸ÀÌ¸Ó ÁßÁö (ÀÌÀü¿¡ µ¿ÀÛ ÁßÀÌ¾ú´Ù¸é)
+                    udpTimer.cancel();  // íƒ€ì´ë¨¸ ì¤‘ì§€ (ì´ì „ì— ë™ì‘ ì¤‘ì´ì—ˆë‹¤ë©´)
                 }
                
                
@@ -180,27 +180,27 @@ public class NewSocket extends JFrame {
                     public void run() {
                     	
                     }
-                }, 0, 2000); // 2s °£°İÀ¸·Î ½ÇÇà
+                }, 0, 2000); // 2s ê°„ê²©ìœ¼ë¡œ ì‹¤í–‰
             }
         });
-        // UDP Àü¼Û ÁßÁö ¹öÆ°
+        // UDP ì „ì†¡ ì¤‘ì§€ ë²„íŠ¼
         sendStopButton_UDP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (udpTimer != null) {
-                    udpTimer.cancel();  // Å¸ÀÌ¸Ó ÁßÁö
-                    udpTimer = null;    // Å¸ÀÌ¸Ó °´Ã¼¸¦ null·Î ¼³Á¤ÇÏ¿© »óÅÂ ÃÊ±âÈ­
-                    consoleArea.append("UDP ¸Ş½ÃÁö Àü¼ÛÀÌ ÁßÁöµÇ¾ú½À´Ï´Ù.\n");
+                    udpTimer.cancel();  // íƒ€ì´ë¨¸ ì¤‘ì§€
+                    udpTimer = null;    // íƒ€ì´ë¨¸ ê°ì²´ë¥¼ nullë¡œ ì„¤ì •í•˜ì—¬ ìƒíƒœ ì´ˆê¸°í™”
+                    consoleArea.append("UDP ë©”ì‹œì§€ ì „ì†¡ì´ ì¤‘ì§€ë˜ì—ˆìŠµë‹ˆë‹¤.\n");
                 }
             }
         });
         receiveButton_UDP.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                receiver_udp = new ReceiverViewModelUdp(receivedMessagesArea);  // receivedMessagesArea Àü´Ş
+                receiver_udp = new ReceiverViewModelUdp(receivedMessagesArea);  // receivedMessagesArea ì „ë‹¬
                 new Thread(() -> receiver_udp.startServer()).start();
-                consoleArea.append("UDP ¼ö½Å ´ë±â Áß...\n");
-                //UDP Broad¸Ş½ÃÁö¸¦ ¼ö½ÅÇÏ¿´Áö Ã¼Å©ÇÏ´Â ½º·¹µå »ı¼º
+                consoleArea.append("UDP ìˆ˜ì‹  ëŒ€ê¸° ì¤‘...\n");
+                //UDP Broadë©”ì‹œì§€ë¥¼ ìˆ˜ì‹ í•˜ì˜€ì§€ ì²´í¬í•˜ëŠ” ìŠ¤ë ˆë“œ ìƒì„±
                 StartUDPCheckThread udpCheckThread = new StartUDPCheckThread(receiver_udp,tcp_connection,imageLabel);
                 Thread udpCheck = new Thread(udpCheckThread);
                 udpCheck.start();

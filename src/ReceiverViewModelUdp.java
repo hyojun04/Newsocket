@@ -10,29 +10,29 @@ import javax.swing.JTextArea;
 public class ReceiverViewModelUdp {
 
     private static final int PORT = 1996;
-    private static final int BUFFER_SIZE = 1024;
-    private static final int TOTAL_PACKETS = 61; // ÀüÃ¼ ÆĞÅ¶ ¼ö (ÇÊ¿ä¿¡ ¸Â°Ô ¼öÁ¤)
+    private static final int BUFFER_SIZE = 1024; // ì—¬ìœ ë¡­ê²Œ ì„¤ì •
+    private static final int TOTAL_PACKETS = 63; // ì „ì²´ íŒ¨í‚· ìˆ˜ (í•„ìš”ì— ë§ê²Œ ìˆ˜ì •)
     private static final boolean MESSAGE_NUM = true;
     private static final boolean PACKET_NUM = false;
-    private JTextArea receivedMessagesArea;  // GUIÀÇ receive message Ã¢
+    private JTextArea receivedMessagesArea;  // GUIì˜ receive message ì°½
     private static int receive_message_num = 0;
     private volatile boolean newMessageReceived_udp = false;
-    public static int receivedMessageNum = 1; //ÇöÀç ¹Ş°í ÀÖ´Â ¸Ş½ÃÁö ¹øÈ£
+    public static int receivedMessageNum = 1; //í˜„ì¬ ë°›ê³  ìˆëŠ” ë©”ì‹œì§€ ë²ˆí˜¸
     public static int array_index= 0;
     public static int ignored_bits = 0;
-    private static int checkSerial; //¹ŞÀº UDP ¸Ş½ÃÁö°¡ ¸î ¹øÂ° ¸Ş½ÃÁöÀÎÁö ÀúÀå
+    private static int checkSerial; //ë°›ì€ UDP ë©”ì‹œì§€ê°€ ëª‡ ë²ˆì§¸ ë©”ì‹œì§€ì¸ì§€ ì €ì¥
    
     private DatagramSocket socket;
    
-    public byte[] checkNewMessage; // ¹ŞÀº ÆĞÅ¶À» Ã¼Å©ÇÏ´Â ¹è¿­
-    public byte[] lastMessage; // ÀÌÀü ¹è¿­(¹è¿­¿¡ º¯È­°¡ »ı°åÀ» ¶§¸¸ ack Àü¼Û)
-    public byte[][] imageData; // ÆĞÅ¶ µ¥ÀÌÅÍ¸¦ ÀúÀåÇÒ ¹è¿­
+    public byte[] checkNewMessage; // ë°›ì€ íŒ¨í‚·ì„ ì²´í¬í•˜ëŠ” ë°°ì—´
+    public byte[] lastMessage; // ì´ì „ ë°°ì—´(ë°°ì—´ì— ë³€í™”ê°€ ìƒê²¼ì„ ë•Œë§Œ ack ì „ì†¡)
+    public byte[][] imageData; // íŒ¨í‚· ë°ì´í„°ë¥¼ ì €ì¥í•  ë°°ì—´
    
-    //¹ŞÀº UDP ¸Ş½ÃÁö°¡ ¸î ¹øÂ° ¸Ş½ÃÁöÀÎÁö ÀúÀåÇÏ°í ÀÖ´Â checkSerial º¯¼ö¸¦ Ãâ·ÂÇÏ´Â ¸Ş¼Òµå
+    //ë°›ì€ UDP ë©”ì‹œì§€ê°€ ëª‡ ë²ˆì§¸ ë©”ì‹œì§€ì¸ì§€ ì €ì¥í•˜ê³  ìˆëŠ” checkSerial ë³€ìˆ˜ë¥¼ ì¶œë ¥í•˜ëŠ” ë©”ì†Œë“œ
     public int Print_checkSerial() {
     	return checkSerial;
     }
-    // »ı¼ºÀÚ¿¡¼­ JTextArea Àü´Ş ¹ŞÀ½
+    // ìƒì„±ìì—ì„œ JTextArea ì „ë‹¬ ë°›ìŒ
     public ReceiverViewModelUdp(JTextArea receivedMessagesArea) {
         this.receivedMessagesArea = receivedMessagesArea;
         initializePacketTracking();
@@ -49,20 +49,20 @@ public class ReceiverViewModelUdp {
     public void resetNewMessageFlag() {
         newMessageReceived_udp = false;
     }
-    // getLeadingÀ» true·Î ÁÖ¸é "_"¸¦ ±âÁØÀ¸·Î ¾ÕÀÇ ¼ıÀÚ¸¦, false·Î ÁÖ¸é µÚÀÇ ¼ıÀÚ¸¦ returnÇÔ
+    // getLeadingì„ trueë¡œ ì£¼ë©´ "_"ë¥¼ ê¸°ì¤€ìœ¼ë¡œ ì•ì˜ ìˆ«ìë¥¼, falseë¡œ ì£¼ë©´ ë’¤ì˜ ìˆ«ìë¥¼ returní•¨
     public static int extractNumberPart(String input, boolean getLeading) {
-        // Á¤±Ô½ÄÀ» »ç¿ëÇÏ¿© ¼ıÀÚ¿Í `_`¸¦ ±âÁØÀ¸·Î ¹®ÀÚ¿­À» ºĞ¸®
+        // ì •ê·œì‹ì„ ì‚¬ìš©í•˜ì—¬ ìˆ«ìì™€ `_`ë¥¼ ê¸°ì¤€ìœ¼ë¡œ ë¬¸ìì—´ì„ ë¶„ë¦¬
         String[] parts = input.split("_");
 
      
-            String leadingNumber = parts[0].replaceAll("\\D", ""); // ¾ÕºÎºĞ ¼ıÀÚ¸¸ ÃßÃâ
+            String leadingNumber = parts[0].replaceAll("\\D", ""); // ì•ë¶€ë¶„ ìˆ«ìë§Œ ì¶”ì¶œ
            
-            String trailingNumber = parts[1].replaceAll("\\D", ""); // µŞºÎºĞ ¼ıÀÚ¸¸ ÃßÃâ
+            String trailingNumber = parts[1].replaceAll("\\D", ""); // ë’·ë¶€ë¶„ ìˆ«ìë§Œ ì¶”ì¶œ
            
-            // getLeadingÀÌ trueÀÏ °æ¿ì ¾ÕºÎºĞ ¼ıÀÚ ¹İÈ¯, falseÀÏ °æ¿ì µŞºÎºĞ ¼ıÀÚ ¹İÈ¯
+            // getLeadingì´ trueì¼ ê²½ìš° ì•ë¶€ë¶„ ìˆ«ì ë°˜í™˜, falseì¼ ê²½ìš° ë’·ë¶€ë¶„ ìˆ«ì ë°˜í™˜
             String numberString = getLeading ? leadingNumber : trailingNumber;
            
-            // ºó ¹®ÀÚ¿­À» Ã³¸®ÇÏ¿© int·Î º¯È¯
+            // ë¹ˆ ë¬¸ìì—´ì„ ì²˜ë¦¬í•˜ì—¬ intë¡œ ë³€í™˜
             return numberString.isEmpty() ? 0 : Integer.parseInt(numberString);
             
         
@@ -72,9 +72,9 @@ public class ReceiverViewModelUdp {
         array_index = (TOTAL_PACKETS + 7) / 8;
         ignored_bits = 8 - (TOTAL_PACKETS % 8);
         checkNewMessage = new byte[array_index];
-        imageData = new byte[TOTAL_PACKETS][]; // ÀÌ¹ÌÁö µ¥ÀÌÅÍ ÀúÀå
+        imageData = new byte[TOTAL_PACKETS][]; // ì´ë¯¸ì§€ ë°ì´í„° ì €ì¥
 
-        // ¹«½ÃÇÒ ºñÆ® ÃÊ±âÈ­
+        // ë¬´ì‹œí•  ë¹„íŠ¸ ì´ˆê¸°í™”
         for (int i = array_index * 8 - ignored_bits + 1; i <= array_index * 8; i++) {
             SetNewMsgBit(i);
         }
@@ -83,96 +83,79 @@ public class ReceiverViewModelUdp {
 
 
     public void startServer() {
-        //socket = null;              
         try {
             socket = new DatagramSocket(PORT);
-            //System.out.println("UDP Server started on port " + PORT + ". Waiting for messages...");
 
-            // ¹«ÇÑ ·çÇÁ·Î ¸Ş½ÃÁö °è¼Ó ¼ö½Å
+            // ë¬´í•œ ë£¨í”„ë¡œ ë©”ì‹œì§€ ê³„ì† ìˆ˜ì‹ 
             while (true) {
                 try {
-                    // ¹öÆÛ »ı¼º
                     byte[] buffer = new byte[BUFFER_SIZE];
-
-                    // ¼ö½ÅÇÒ ÆĞÅ¶ »ı¼º
                     DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 
-                    // µ¥ÀÌÅÍ ¼ö½Å
+                    // ë°ì´í„° ìˆ˜ì‹ 
                     socket.receive(receivePacket);
 
-                    // ¼ö½ÅµÈ µ¥ÀÌÅÍ Ã³¸®
+                    // ìˆ˜ì‹ ëœ ë°ì´í„° ì²˜ë¦¬
                     String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
-
-                    // ¼Û½ÅÀÚ IP ÁÖ¼Ò °¡Á®¿À±â
                     InetAddress senderAddress = receivePacket.getAddress();
                     String senderIP = senderAddress.getHostAddress();
-
-                    // ÇöÀç ½Ã°£À» hh:mm:ss.SSS Çü½ÄÀ¸·Î °¡Á®¿À±â
                     String timeStamp = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
-
-                    // ¸Ş½ÃÁöÀÇ ¾ÕºÎºĞ 10±ÛÀÚ¸¸ Àß¶ó¼­ Ç¥½Ã
                     String truncatedMessage = receivedMessage.length() > 10
                             ? receivedMessage.substring(0, 10)
                             : receivedMessage;
 
-                    // ¼ö½Å ¸Ş½ÃÁö GUI¿¡ Ç¥½Ã
                     receive_message_num++;
-                   
-                   
-                   
-                    receivedMessagesArea.append("[" + receive_message_num + "] Received UDP message from " + senderIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");                    
-                    //System.out.println("I got Message: " + truncatedMessage);
+                    receivedMessagesArea.append("[" + receive_message_num + "] Received UDP message from " + senderIP + ": " + truncatedMessage + " [" + timeStamp + "]\n");
 
-                    // ¸Ş½ÃÁö ¹øÈ£¿Í ÆĞÅ¶ ¹øÈ£ ÃßÃâ
-                    int message_num = extractNumberPart(truncatedMessage,MESSAGE_NUM);
-                    int packet_num = extractNumberPart(truncatedMessage,PACKET_NUM);
-                   
-                    // Çì´õ Å©±â °è»ê: ¸Ş½ÃÁö ¹øÈ£ + ÆĞÅ¶ ¹øÈ£ Å©±â (°¢°¢ 1ÀÚ + 1~2ÀÚ)
-                    int headerLength = Integer.toString(message_num).length() + Integer.toString(packet_num).length() + 2; // "_" ¹®ÀÚ 2r°³ Æ÷ÇÔ
+                    // ë©”ì‹œì§€ ë²ˆí˜¸ì™€ íŒ¨í‚· ë²ˆí˜¸ ì¶”ì¶œ
+                    int message_num = extractNumberPart(truncatedMessage, MESSAGE_NUM);
+                    int packet_num = extractNumberPart(truncatedMessage, PACKET_NUM);
 
-                    // ½ÇÁ¦ ÀÌ¹ÌÁö µ¥ÀÌÅÍ ÃßÃâ (Çì´õ¸¦ Á¦¿ÜÇÑ ³ª¸ÓÁö µ¥ÀÌÅÍ)
-                    byte[] imagePacketData = Arrays.copyOfRange(receivePacket.getData(), headerLength, receivePacket.getLength());
-                   
-                   
-                    if (receivedMessageNum == message_num) { // ¸Â´Â ¸Ş½ÃÁö ¹øÈ£°¡ ¿À¸é
-                       
-               
-                    	//¹ŞÀº ÆĞÅ¶ ¹øÈ£¿¡ ¸Â´Â ¹è¿­ÀÇ index¸¦ set
-                    	SetNewMsgBit(packet_num);
-                    	imageData[packet_num - 1] = imagePacketData; // ÀÌ¹ÌÁö µ¥ÀÌÅÍ ÀúÀå                                                    
+                    // ìœ íš¨í•œ íŒ¨í‚· ë²ˆí˜¸ì¸ì§€ í™•ì¸
+                    if (packet_num > 0 && packet_num <= TOTAL_PACKETS) {
+                        int headerLength = Integer.toString(message_num).length() + Integer.toString(packet_num).length() + 2; // "_" ë¬¸ì 2ê°œ í¬í•¨
+                        byte[] imagePacketData = Arrays.copyOfRange(receivePacket.getData(), headerLength, receivePacket.getLength());
+                        
+                        // íŒ¨í‚· ë²ˆí˜¸ê°€ 10 ì´ìƒì´ë©´ í¬ê¸° ì¡°ì •
+                        if (packet_num >= 10) {
+                            byte[] extendedPacketData = new byte[imagePacketData.length + 1]; // ê¸°ì¡´ í¬ê¸° + 1
+                            System.arraycopy(imagePacketData, 0, extendedPacketData, 0, imagePacketData.length); // ê¸°ì¡´ ë°ì´í„° ë³µì‚¬
+                            extendedPacketData[extendedPacketData.length - 1] = 0; // ë§ˆì§€ë§‰ì— ë¹ˆ ê³µê°„(0) ì¶”ê°€
+                            imagePacketData = extendedPacketData; // í¬ê¸° ì¡°ì •ëœ ë°°ì—´ë¡œ ì—…ë°ì´íŠ¸
+                        }
+                        if (receivedMessageNum == message_num) {
+                            SetNewMsgBit(packet_num);
+                            imageData[packet_num - 1] = imagePacketData; // ì´ë¯¸ì§€ ë°ì´í„° ì €ì¥
+                        }
+                    } else {
+                        System.err.println("Invalid packet number: " + packet_num);
                     }
-                    else {
-                        //System.out.println("Received wrong message");
-                    }
-
-                   
 
                 } catch (NumberFormatException e) {
-                    //System.out.println("Invalid number format in received message: " + e.getMessage());
+                    System.err.println("Invalid number format in received message: " + e.getMessage());
                 } catch (SocketException e) {
-                    //System.out.println("Socket error occurred: " + e.getMessage());
-                    break; // ¼ÒÄÏ¿¡ ¹®Á¦°¡ »ı±â¸é ·çÇÁ¸¦ Å»ÃâÇÏ¿© ¼­¹ö¸¦ Áß´ÜÇÕ´Ï´Ù.
+                    System.err.println("Socket error occurred: " + e.getMessage());
+                    break;
                 } catch (SecurityException e) {
-                    //System.out.println("Security exception: " + e.getMessage());
+                    System.err.println("Security exception: " + e.getMessage());
                 } catch (IllegalArgumentException e) {
-                    //System.out.println("Illegal argument: " + e.getMessage());
+                    System.err.println("Illegal argument: " + e.getMessage());
                 } catch (Exception e) {
-                    //System.out.println("Unexpected error while receiving data: " + e.getMessage());
-                    e.printStackTrace(); // Ãß°¡ÀûÀÎ ¿À·ù ·Î±×¸¦ Ãâ·ÂÇÏ¿© ¹®Á¦¸¦ ´õ Á¤È®È÷ ÆÄ¾ÇÇÒ ¼ö ÀÖ°Ô ÇÕ´Ï´Ù.
+                    e.printStackTrace();
                 }
             }
         } catch (SocketException e) {
-            //System.out.println("Failed to bind UDP socket to port " + PORT + ": " + e.getMessage());
+            System.err.println("Failed to bind UDP socket to port " + PORT + ": " + e.getMessage());
         } catch (Exception e) {
-            //System.out.println("Server startup error: " + e.getMessage());
             e.printStackTrace();
         } finally {
             if (socket != null && !socket.isClosed()) {
                 socket.close();
-                //System.out.println("UDP Server socket closed.");
+                System.out.println("UDP Server socket closed.");
             }
         }
     }
+
    
     public String startConnect_to_tcp() {
         DatagramSocket socket = null;
@@ -180,20 +163,20 @@ public class ReceiverViewModelUdp {
             socket = new DatagramSocket(PORT);
             //System.out.println("UDP Server started on port " + PORT + ". Waiting for connect to tcp...");
            
-            // ¹öÆÛ »ı¼º
+            // ë²„í¼ ìƒì„±
             byte[] buffer = new byte[BUFFER_SIZE];
 
-            // ¼ö½ÅÇÒ ÆĞÅ¶ »ı¼º
+            // ìˆ˜ì‹ í•  íŒ¨í‚· ìƒì„±
             DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 
-            // µ¥ÀÌÅÍ ¼ö½Å (¸Ş½ÃÁö°¡ ¿Ã ¶§±îÁö ´ë±â)
+            // ë°ì´í„° ìˆ˜ì‹  (ë©”ì‹œì§€ê°€ ì˜¬ ë•Œê¹Œì§€ ëŒ€ê¸°)
             socket.receive(receivePacket);
 
-            // ¼Û½ÅÀÚ IP ÁÖ¼Ò °¡Á®¿À±â
+            // ì†¡ì‹ ì IP ì£¼ì†Œ ê°€ì ¸ì˜¤ê¸°
             InetAddress senderAddress = receivePacket.getAddress();
             String senderIP = senderAddress.getHostAddress();
 
-            // IP ÁÖ¼Ò°¡ À¯È¿ÇÏ¸é ¹İÈ¯, À¯È¿ÇÏÁö ¾ÊÀ¸¸é null ¹İÈ¯
+            // IP ì£¼ì†Œê°€ ìœ íš¨í•˜ë©´ ë°˜í™˜, ìœ íš¨í•˜ì§€ ì•Šìœ¼ë©´ null ë°˜í™˜
             if (senderIP != null && !senderIP.isEmpty()) {
                 //System.out.println("This is serverIP: " + senderIP);
                 return senderIP;
@@ -207,34 +190,34 @@ public class ReceiverViewModelUdp {
             //System.out.println("Server startup error: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            // ¸Ş½ÃÁö¸¦ ¼ö½ÅÇÑ ÈÄ ¼ÒÄÏÀ» ´İ¾Æ ´õ ÀÌ»ó ¸Ş½ÃÁö¸¦ ¹ŞÁö ¾Êµµ·Ï ÇÔ.
+            // ë©”ì‹œì§€ë¥¼ ìˆ˜ì‹ í•œ í›„ ì†Œì¼“ì„ ë‹«ì•„ ë” ì´ìƒ ë©”ì‹œì§€ë¥¼ ë°›ì§€ ì•Šë„ë¡ í•¨.
             if (socket != null && !socket.isClosed()) {
                 socket.close();
                 //System.out.println("UDP Server socket closed.");
             }
         }
-        return null; // ¸Ş½ÃÁö¸¦ ¼ö½ÅÇÏÁö ¸øÇß°Å³ª ¿À·ù ¹ß»ı ½Ã null ¹İÈ¯
+        return null; // ë©”ì‹œì§€ë¥¼ ìˆ˜ì‹ í•˜ì§€ ëª»í–ˆê±°ë‚˜ ì˜¤ë¥˜ ë°œìƒ ì‹œ null ë°˜í™˜
     }
    
-    // ¼ö½ÅÇÑ ÆĞÅ¶ ¹øÈ£¿¡ ¸Â´Â bit¸¦ set ½ÃÅ´
+    // ìˆ˜ì‹ í•œ íŒ¨í‚· ë²ˆí˜¸ì— ë§ëŠ” bitë¥¼ set ì‹œí‚´
     public void SetNewMsgBit(int packet_num) {
-            // packet_numÀÇ À§Ä¡¿¡ ÇØ´çÇÏ´Â ºñÆ®¸¦ ¼³Á¤(0¹øÂ° ºñÆ®ºÎÅÍ Ã¤¿ò)
-            int byteIndex = (packet_num-1) / 8;   // ÇØ´ç ºñÆ®°¡ ¼ÓÇÑ ¹ÙÀÌÆ® ÀÎµ¦½º
-            int bitIndex = (packet_num-1) % 8;    // ÇØ´ç ¹ÙÀÌÆ® ³»ÀÇ ºñÆ® À§Ä¡
+            // packet_numì˜ ìœ„ì¹˜ì— í•´ë‹¹í•˜ëŠ” ë¹„íŠ¸ë¥¼ ì„¤ì •(0ë²ˆì§¸ ë¹„íŠ¸ë¶€í„° ì±„ì›€)
+            int byteIndex = (packet_num-1) / 8;   // í•´ë‹¹ ë¹„íŠ¸ê°€ ì†í•œ ë°”ì´íŠ¸ ì¸ë±ìŠ¤
+            int bitIndex = (packet_num-1) % 8;    // í•´ë‹¹ ë°”ì´íŠ¸ ë‚´ì˜ ë¹„íŠ¸ ìœ„ì¹˜
 
-            // ÇØ´ç ¹ÙÀÌÆ® ³»¿¡¼­ bitIndex À§Ä¡ÀÇ ºñÆ®°¡ 0ÀÎÁö 1ÀÎÁö È®ÀÎ
+            // í•´ë‹¹ ë°”ì´íŠ¸ ë‚´ì—ì„œ bitIndex ìœ„ì¹˜ì˜ ë¹„íŠ¸ê°€ 0ì¸ì§€ 1ì¸ì§€ í™•ì¸
             if ((checkNewMessage[byteIndex] & (1 << bitIndex)) == 0) {
-                // ºñÆ®°¡ 0ÀÌ¶ó¸é 1·Î ¼³Á¤
+                // ë¹„íŠ¸ê°€ 0ì´ë¼ë©´ 1ë¡œ ì„¤ì •
             	checkNewMessage[byteIndex] |= (1 << bitIndex);
                 //System.out.println("Set checkNewMessage[" + packet_num + "]:");
-                StartUDPCheckThread.printByteArrayAsBinary(checkNewMessage); //¹è¿­ Ãâ·Â    
+                StartUDPCheckThread.printByteArrayAsBinary(checkNewMessage); //ë°°ì—´ ì¶œë ¥    
             } else {
-                // ÀÌ¹Ì ºñÆ®°¡ 1ÀÎ °æ¿ì
+                // ì´ë¯¸ ë¹„íŠ¸ê°€ 1ì¸ ê²½ìš°
                 //System.out.println("checkNewMessage[" + packet_num + "] is already set to 1.");
               }
            }
    
-    //Server¿¡¼­ Reset ¿äÃ»ÀÌ ¿Ã ¶§
+    //Serverì—ì„œ Reset ìš”ì²­ì´ ì˜¬ ë•Œ
     public void resetUDPreceiving() {
     	socket.close();
     }

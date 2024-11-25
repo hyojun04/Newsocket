@@ -4,7 +4,7 @@ import java.net.Socket;
 public class TcpSocketConnection {
     private static final int PORT = 8189;
     private Socket socket;
-    private Client_Tcp client; // SenderViewModel ÀÎ½ºÅÏ½º
+    private Client_Tcp client; // SenderViewModel ì¸ìŠ¤í„´ìŠ¤
     
 
     
@@ -24,29 +24,29 @@ public class TcpSocketConnection {
         }
     }
  
-    // TCP ¿¡ÄÚ ¸Ş½ÃÁö¸¦ Àü¼ÛÇÏ´Â ¸Ş¼­µå
+    // TCP ì—ì½” ë©”ì‹œì§€ë¥¼ ì „ì†¡í•˜ëŠ” ë©”ì„œë“œ
     public void sendAckMessage(String message) {
         if (client != null) {
-            client.sendMessage_tcp(message); // Client_TcpÀ» »ç¿ëÇÏ¿© ¸Ş½ÃÁö Àü¼Û
+            client.sendMessage_tcp(message); // Client_Tcpì„ ì‚¬ìš©í•˜ì—¬ ë©”ì‹œì§€ ì „ì†¡
         } else {
-            System.out.println("SenderViewModelÀÌ ÃÊ±âÈ­µÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            System.out.println("SenderViewModelì´ ì´ˆê¸°í™”ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
         }
     }
- // byte¹è¿­ÀÇ TCP check ¸Ş½ÃÁö¸¦ Àü¼ÛÇÏ´Â ¸Ş¼­µå
+ // byteë°°ì—´ì˜ TCP check ë©”ì‹œì§€ë¥¼ ì „ì†¡í•˜ëŠ” ë©”ì„œë“œ
     public void sendAckMessage(byte[] message) {
         if (client != null) {
-            client.sendMessage_tcp(message); // Client_TcpÀ» »ç¿ëÇÏ¿© ¸Ş½ÃÁö Àü¼Û
+            client.sendMessage_tcp(message); // Client_Tcpì„ ì‚¬ìš©í•˜ì—¬ ë©”ì‹œì§€ ì „ì†¡
         } else {
-            System.out.println("SenderViewModelÀÌ ÃÊ±âÈ­µÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            System.out.println("SenderViewModelì´ ì´ˆê¸°í™”ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
         }
     }
     
-    // ¼ÒÄÏ Á¾·á ¸Ş¼­µå Ãß°¡
+    // ì†Œì¼“ ì¢…ë£Œ ë©”ì„œë“œ ì¶”ê°€
     public void closeSocket() {
         try {
             if (socket != null && !socket.isClosed()) {
                 socket.close();
-                System.out.println("TCP ¼ÒÄÏÀÌ ´İÇû½À´Ï´Ù.");
+                System.out.println("TCP ì†Œì¼“ì´ ë‹«í˜”ìŠµë‹ˆë‹¤.");
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -6,7 +6,7 @@ public class Server_Tcp {
     private Socket socket;
     private static final int PORT = 8189;
    
-    private volatile boolean newEchoReceived_tcp = false; // ¿¡ÄÚ ¸Ş½ÃÁö ¼ö½Å ¿©ºÎ
+    private volatile boolean newEchoReceived_tcp = false; // ì—ì½” ë©”ì‹œì§€ ìˆ˜ì‹  ì—¬ë¶€
 
     public Server_Tcp(Socket socket) {
         this.socket = socket;
@@ -31,28 +31,28 @@ public class Server_Tcp {
 
             String clientIP = socket.getInetAddress().getHostAddress();
 
-            // Å¬¶óÀÌ¾ğÆ®¿ÍÀÇ ¿¬°áÀ» À¯ÁöÇÏ¸é¼­ ¸Ş½ÃÁö¸¦ Áö¼ÓÀûÀ¸·Î ¼ö½Å
+            // í´ë¼ì´ì–¸íŠ¸ì™€ì˜ ì—°ê²°ì„ ìœ ì§€í•˜ë©´ì„œ ë©”ì‹œì§€ë¥¼ ì§€ì†ì ìœ¼ë¡œ ìˆ˜ì‹ 
             while (!socket.isClosed()) {
                 try {
                     Object receivedObject = in.readObject();
                     if (receivedObject instanceof String) {
                         String receivedMessage = (String) receivedObject;
 
-                        // ¼ö½ÅµÈ ¸Ş½ÃÁö Ã³¸®
-                        System.out.println("¼ö½ÅµÈ ¸Ş½ÃÁö from " + clientIP + ": " + receivedMessage);
+                        // ìˆ˜ì‹ ëœ ë©”ì‹œì§€ ì²˜ë¦¬
+                        System.out.println("ìˆ˜ì‹ ëœ ë©”ì‹œì§€ from " + clientIP + ": " + receivedMessage);
                         newEchoReceived_tcp = true;
 
                         out.flush();
                     }
                 } catch (EOFException e) {
                     System.out.println("Client Connection is disconnected.");
-                    break; // Å¬¶óÀÌ¾ğÆ®°¡ ¿¬°áÀ» Á¾·áÇßÀ» ¶§ while ·çÇÁ¸¦ Å»Ãâ
+                    break; // í´ë¼ì´ì–¸íŠ¸ê°€ ì—°ê²°ì„ ì¢…ë£Œí–ˆì„ ë•Œ while ë£¨í”„ë¥¼ íƒˆì¶œ
                 } catch (SocketException e) {
                     System.out.println("Connection gets reset: " + e.getMessage());
-                    break; // ¿¬°áÀÌ ¸®¼ÂµÇ¾úÀ» ¶§ while ·çÇÁ¸¦ Å»Ãâ
+                    break; // ì—°ê²°ì´ ë¦¬ì…‹ë˜ì—ˆì„ ë•Œ while ë£¨í”„ë¥¼ íƒˆì¶œ
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
-                    break; // ±âÅ¸ ¿À·ù°¡ ¹ß»ıÇßÀ» ¶§ while ·çÇÁ¸¦ Å»Ãâ
+                    break; // ê¸°íƒ€ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆì„ ë•Œ while ë£¨í”„ë¥¼ íƒˆì¶œ
                 }
             }
 

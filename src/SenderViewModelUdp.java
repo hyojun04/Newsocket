@@ -4,7 +4,7 @@ import java.net.InetAddress;
 
 public class SenderViewModelUdp {
     private static final int PORT = 1996;
-    private static final int PACKET_SIZE = 1024; // UDP ÆĞÅ¶ Å©±â (1KB)
+    private static final int PACKET_SIZE = 1024; // UDP íŒ¨í‚· í¬ê¸° (1KB)
 
     public void startClient(String serverIP) {
         DatagramSocket socket = null;
@@ -12,16 +12,16 @@ public class SenderViewModelUdp {
         try {
             socket = new DatagramSocket();
             InetAddress serverAddress = InetAddress.getByName(serverIP);
-            System.out.println("¼­¹ö¿¡ ¿¬°áµÇ¾ú½À´Ï´Ù.");
+            System.out.println("ì„œë²„ì— ì—°ê²°ë˜ì—ˆìŠµë‹ˆë‹¤.");
 
-            // 60KBÀÇ ¿¬¼ÓµÈ "A" ¹®ÀÚ »ı¼º , ÀÓÀÇ·Î 30 bytes ¼³Á¤
+            // 60KBì˜ ì—°ì†ëœ "A" ë¬¸ì ìƒì„± , ì„ì˜ë¡œ 30 bytes ì„¤ì •
             StringBuilder messageBuilder = new StringBuilder(30);
             for (int i = 0; i < 30; i++) {
                 messageBuilder.append('A');
             }
             String message = messageBuilder.toString();
 
-            // ¸Ş½ÃÁö¸¦ ºĞÇÒÇÏ¿© Àü¼Û
+            // ë©”ì‹œì§€ë¥¼ ë¶„í• í•˜ì—¬ ì „ì†¡
             byte[] messageBytes = message.getBytes();
             int offset = 0;
             while (offset < messageBytes.length) {
@@ -35,7 +35,7 @@ public class SenderViewModelUdp {
                 offset += length;
             }
 
-            System.out.println("60KBÀÇ ¿¬¼ÓµÈ 'A' ¸Ş½ÃÁö¸¦ ¼­¹ö·Î Àü¼ÛÇß½À´Ï´Ù.");
+            System.out.println("60KBì˜ ì—°ì†ëœ 'A' ë©”ì‹œì§€ë¥¼ ì„œë²„ë¡œ ì „ì†¡í–ˆìŠµë‹ˆë‹¤.");
 
         } catch (Exception e) {
             e.printStackTrace();
